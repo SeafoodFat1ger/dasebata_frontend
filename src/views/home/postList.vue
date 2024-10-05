@@ -1,0 +1,267 @@
+<template>
+  <div>
+    <!-- 渲染当前页面的帖子 -->
+    <div class="post-list">
+      <div 
+        v-for="post in paginatedPosts" 
+        :key="post.id" 
+        class="post-item"
+        @click="goToPost(post.id)"
+      >
+        <el-card
+          shadow="hover"
+          :body-style="{ padding: '20px', border: 'none' }"  
+          @mouseenter="onMouseEnter($event)"
+          @mouseleave="onMouseLeave($event)"
+          class="post-card"
+        >
+          <div class="post-header">
+            <el-avatar :src="post.author.avatar"></el-avatar>
+            <div class="post-info">
+              <div class="post-title">{{ post.title }}</div>
+              <div class="post-meta">楼主 发布于 {{ post.publishDate }}</div>
+            </div>
+          </div>
+          <div class="post-content">
+            {{ post.summary }}
+          </div>
+          <div class="post-footer">
+            <el-tag v-for="tag in post.tags" :key="tag" type="success">{{ tag }}</el-tag>
+            <el-icon><i class="el-icon-message"></i></el-icon>
+            <span>{{ post.commentsCount }}</span>
+          </div>
+        </el-card>
+      </div>
+    </div>
+
+    <!-- 分页组件 -->
+    <el-pagination
+      background
+      layout="prev, pager, next"
+      :total="posts.length"
+      :page-size="pageSize"
+      v-model:currentPage="currentPage"
+      @current-change="handlePageChange"
+      class="pagination"
+    />
+  </div>
+</template>
+<script >
+import { ElAvatar, ElTag, ElIcon, ElPagination } from 'element-plus'
+import { ChatLineSquare } from "@element-plus/icons-vue";
+const pageSize = 5;
+export default {
+    components: {
+        ElAvatar,
+        ElTag,
+        ElIcon,
+        ElPagination,
+        ChatLineSquare
+    },
+    data() {
+        return {
+            posts: [
+                {
+                    id: 1,
+                    title: "大二鼠鼠的日记楼",
+                    author: {
+                        avatar: "https://example.com/avatar1.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-08-24 18:52",
+                    summary: "新学期快开始了，开一个日记楼，先睡会吧。",
+                    tags: ["学习生活", "日常事务"],
+                    commentsCount: 28
+                },
+                {
+                    id: 2,
+                    title: "大三鼠鼠求实验室建议",
+                    author: {
+                        avatar: "https://example.com/avatar2.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-09-19 23:41",
+                    summary: "大三，保研边缘徘徊，实验室的建议是什么？",
+                    tags: ["科研", "实验室"],
+                    commentsCount: 9
+                },
+                {
+                    id: 3,
+                    title: "科研经历在保研中的占比",
+                    author: {
+                        avatar: "https://example.com/avatar3.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-09-20 22:13",
+                    summary: "现在大三，感觉科研对保研的帮助有多大？",
+                    tags: ["保研", "科研"],
+                    commentsCount: 5
+                },
+                {
+                    id: 4,
+                    title: "2021级你推免分数线预测/结果",
+                    author: {
+                        avatar: "https://example.com/avatar4.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-09-09 14:44",
+                    summary: "听说今年政策有变动，推免分数线会涨吗？",
+                    tags: ["推免", "政策"],
+                    commentsCount: 24
+                },
+                {
+                    id: 5,
+                    title: "卓工",
+                    author: {
+                        avatar: "https://example.com/avatar5.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-09-20 22:54",
+                    summary: "有经验的同学，卓工的优势在哪？",
+                    tags: ["卓工", "考研"],
+                    commentsCount: 0
+                },
+                // 添加更多的模拟帖子...
+                {
+                    id: 5,
+                    title: "卓工",
+                    author: {
+                        avatar: "https://example.com/avatar5.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-09-20 22:54",
+                    summary: "有经验的同学，卓工的优势在哪？",
+                    tags: ["卓工", "考研"],
+                    commentsCount: 0
+                },
+                {
+                    id: 5,
+                    title: "卓工",
+                    author: {
+                        avatar: "https://example.com/avatar5.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-09-20 22:54",
+                    summary: "有经验的同学，卓工的优势在哪？",
+                    tags: ["卓工", "考研"],
+                    commentsCount: 0
+                },
+                {
+                    id: 5,
+                    title: "卓工",
+                    author: {
+                        avatar: "https://example.com/avatar5.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-09-20 22:54",
+                    summary: "有经验的同学，卓工的优势在哪？",
+                    tags: ["卓工", "考研"],
+                    commentsCount: 0
+                },
+                {
+                    id: 5,
+                    title: "卓工",
+                    author: {
+                        avatar: "https://example.com/avatar5.png",
+                        name: "楼主"
+                    },
+                    publishDate: "2024-09-20 22:54",
+                    summary: "有经验的同学，卓工的优势在哪？",
+                    tags: ["卓工", "考研"],
+                    commentsCount: 0
+                },
+
+            ],
+            currentPage: 1,
+        };
+    },
+    computed: {
+        // 根据当前页码计算展示的帖子
+        paginatedPosts() {
+            const start = (this.currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            return this.posts.slice(start, end);
+        }
+    },
+    // mounted() {
+    //     this.fetchPosts();
+    // },
+    methods: {
+        // 页码改变时触发
+        handlePageChange(page) {
+            this.currentPage = page;
+        },
+        fetchPosts() {
+            // 向后端 API 请求数据，示例使用 Axios
+            this.$axios.get('/api/posts')
+                .then(response => {
+                    this.posts = response.data;
+                })
+                .catch(error => {
+                    console.error("Error fetching posts", error);
+                });
+        },
+
+        // 鼠标悬停改变背景颜色
+        onMouseEnter(event) {
+            event.currentTarget.style.backgroundColor = '#f5f5f5';
+        },
+        onMouseLeave(event) {
+            event.currentTarget.style.backgroundColor = '';
+        },
+        // 点击帖子跳转到对应的详情页
+        goToPost(id) {
+            this.$router.push(`/home/posts/${id}`);
+        }
+    }
+};
+</script>
+  
+<style scoped>
+.post-list {
+    padding: 10px;
+}
+
+.post-item {
+    padding: 0px 0;
+    transition: background-color 0.3s;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+}
+
+.post-info {
+    margin-left: 10px;
+}
+
+.post-title {
+    font-weight: bold;
+}
+
+.post-meta {
+    color: #999;
+}
+
+.post-content {
+    margin-top: 10px;
+    color: #333;
+}
+
+.post-footer {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.post-footer .el-icon {
+    margin-right: 5px;
+}
+
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+</style>
+  
