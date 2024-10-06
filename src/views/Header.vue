@@ -1,62 +1,64 @@
 <template>
-        <el-container>
-            <!--顶部栏-->
-            <el-header class="content-header" style="background-color: white;">
-                <div class="content-aside-topShow-logoAndName">
-                    北航BBS
-                </div>
-                <!--添加一个输入框-->
-                <div style="flex: 1;margin: 0 150px 0 40px">
-                    <el-input :prefix-icon="Search" style="margin-top: 15px"></el-input>
-                </div>
+    <el-container class="fixed-header">
+        <!--顶部栏-->
+        <el-header class="content-header" style="background-color: white;">
+            <div class="content-aside-topShow-logoAndName">
+                北航BBS
+            </div>
+            <!--添加一个输入框-->
+            <div style="flex: 1;margin: 0 150px 0 40px">
+                <el-input :prefix-icon="Search" style="margin-top: 15px"></el-input>
+            </div>
 
-                <div style="flex: 1;margin: 0 0 0 10px">
+            <div style="flex: 1;margin: 0 0 0 10px">
 
-                    <!--菜单栏-->
-                    <el-menu :default-active="router.currentRoute.value.path" mode="horizontal" :ellipsis="false" router>
-                        <el-menu-item index="/home/posts">
-                            <el-icon>
-                                <Document />
-                            </el-icon>
-                            <span>帖子列表</span>
-                        </el-menu-item>
-                        <el-menu-item index="/home/chats">
-                            <el-icon>
-                                <ChatLineSquare />
-                            </el-icon>
-                            <span>消息列表</span>
-                        </el-menu-item>
-                        <el-menu-item index="/home/tools">
-                            <el-icon>
-                                <Tools />
-                            </el-icon>
-                            <span>工具箱</span>
-                        </el-menu-item>
-                    </el-menu>
-                </div>
+                <!--菜单栏-->
+                <el-menu :default-active="router.currentRoute.value.path" mode="horizontal" :ellipsis="false" router>
+                    <el-menu-item index="/home/posts">
+                        <el-icon>
+                            <Document />
+                        </el-icon>
+                        <span>帖子列表</span>
+                    </el-menu-item>
+                    <el-menu-item index="/home/chats">
+                        <el-icon>
+                            <ChatLineSquare />
+                        </el-icon>
+                        <span>消息列表</span>
+                    </el-menu-item>
+                    <el-menu-item index="/home/tools">
+                        <el-icon>
+                            <Tools />
+                        </el-icon>
+                        <span>工具箱</span>
+                    </el-menu-item>
+                </el-menu>
+            </div>
 
-                <!--展示当前登录的用户名和邮箱-->
-                <div class="user-name-email">
-                    <!--注意：username,email对应的是后端里AccountUser的字段-->
-                    <div class="user-name">abc</div>
-                    <div class="user-email">def</div>
-                </div>
-                <!--引入element-plus的头像和下拉菜单-->
-                <div style="margin-top: 10px" class="user-avatar">
-                    <el-dropdown>
-                        <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item :icon="User">个人信息</el-dropdown-item>
-                                <el-dropdown-item :icon="SwitchButton" divided @click="logout">退出登录</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-                </div>
-            </el-header>
+            <!--展示当前登录的用户名和邮箱-->
+            <div class="user-name-email">
+                <!--注意：username,email对应的是后端里AccountUser的字段-->
+                <div class="user-name">abc</div>
+                <div class="user-email">def</div>
+            </div>
+            <!--引入element-plus的头像和下拉菜单-->
+            <div style="margin-top: 10px" class="user-avatar">
+                <el-dropdown>
+                    <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item :icon="User" @click="goProfile">个人信息</el-dropdown-item>
+                            <el-dropdown-item :icon="SwitchButton" divided @click="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+            </div>
+        </el-header>
 
-        </el-container>
-
+    </el-container>
+    <el-main>
+        <router-view></router-view>
+    </el-main>
 </template>
   
 <script setup>
@@ -74,12 +76,24 @@ const logout = () => {
         localStorage.removeItem('user')//将localStorage存储的用户信息也删掉
         router.push('/')//跳转回登录页面
     })
-    
+
+}
+
+const goProfile = () => {
+    router.push('/home/profile/activity')
 }
 
 </script>
   
 <style scoped>
+.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    /* 确保头部处于页面最前 */
+}
 .content-header {
     display: flex;
     /*整个顶部栏采用流式布局*/
@@ -120,4 +134,5 @@ const logout = () => {
     color: grey;
     font-size: 14px;
     line-height: 14px
-}</style>
+}
+</style>

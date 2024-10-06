@@ -20,22 +20,41 @@ const router = createRouter({
         },
       ]
     },
-    // {
-    //   path: '/home',
-    //   name: 'home',
-    //   component: () => import('../views/header.vue'),
-    //   children: [
-    //     {
-    //       path: 'posts',
-    //       name: 'posts',
-    //       component: () => import('../views/home/postList.vue')
-    //     }
-    //   ]
-    // },
     {
-      path: '/home/posts',
-      name: 'posts',
-      component: () => import('../views/home/postList.vue'),
+      path: '/home',
+      name: 'home',
+      component: () => import('../views/Header.vue'),
+      children: [
+        {
+          path: 'posts',
+          name: 'posts',
+          component: () => import('../views/home/postList.vue'),
+        },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: () => import('../views/home/profile.vue'),
+          children: [
+            {
+              path: 'likes',
+              name: 'likes',
+              component: () => import('../views/profile/likes.vue')
+            }, {
+              path: 'stars',
+              name: 'stars',
+              component: () => import('../views/profile/stars.vue')
+            }, {
+              path: 'activity',
+              name: 'activity',
+              component: () => import('../views/profile/activity.vue')
+            }, {
+              path: 'guan',
+              name: 'guan',
+              component: () => import('../views/profile/guan.vue')
+            }
+          ]
+        },
+      ]
     },
     {
       path: '/:catchAll(.*)',

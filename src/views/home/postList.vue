@@ -1,7 +1,4 @@
 <template>
-    <div class="fixed-header">
-        <myHead />
-    </div>
     <el-container class="content">
         <!-- 左侧菜单 -->
         <el-aside width="200px">
@@ -57,7 +54,6 @@
 <script >
 import { ElAvatar, ElTag, ElIcon, ElPagination } from 'element-plus'
 import { ChatLineSquare } from "@element-plus/icons-vue";
-import myHead from "../Header.vue"
 import myEditor from "../../components/Editor.vue" 
 
 
@@ -68,7 +64,6 @@ const pageSize = 10;
 export default {
     components: {
         myEditor,
-        myHead,
         ElAvatar,
         ElTag,
         ElIcon,
