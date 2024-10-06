@@ -1,57 +1,74 @@
 <template>
-  <div>
-    <!-- 渲染当前页面的帖子 -->
-    <div class="post-list">
-      <div 
-        v-for="post in paginatedPosts" 
-        :key="post.id" 
-        class="post-item"
-        @click="goToPost(post.id)"
-      >
-        <el-card
-          shadow="hover"
-          :body-style="{ padding: '20px', border: 'none' }"  
-          @mouseenter="onMouseEnter($event)"
-          @mouseleave="onMouseLeave($event)"
-          class="post-card"
-        >
-          <div class="post-header">
-            <el-avatar :src="post.author.avatar"></el-avatar>
-            <div class="post-info">
-              <div class="post-title">{{ post.title }}</div>
-              <div class="post-meta">楼主 发布于 {{ post.publishDate }}</div>
-            </div>
-          </div>
-          <div class="post-content">
-            {{ post.summary }}
-          </div>
-          <div class="post-footer">
-            <el-tag v-for="tag in post.tags" :key="tag" type="success">{{ tag }}</el-tag>
-            <el-icon><i class="el-icon-message"></i></el-icon>
-            <span>{{ post.commentsCount }}</span>
-          </div>
-        </el-card>
-      </div>
+    <div class="fixed-header">
+        <myHead />
     </div>
+    <el-container class="content">
+        <!-- 左侧菜单 -->
+        <el-aside width="200px">
+            <el-button type="primary" style="margin-left: 16px" @click="drawer = true">
+                发起帖子 {{ drawer }}
+            </el-button>
+            <el-menu>
+                <el-menu-item>全部</el-menu-item>
+                <el-menu-item>学习生活</el-menu-item>
+                <el-menu-item>日常事务</el-menu-item>
+                <el-menu-item>情感交流</el-menu-item>
+                <el-menu-item>潜水吐槽</el-menu-item>
+                <el-menu-item>寻找作乐</el-menu-item>
+            </el-menu>
+        </el-aside>
+        <el-main>
+            <!-- 渲染当前页面的帖子 -->
+            <div>
+                <div v-for="post in paginatedPosts" :key="post.id" class="post-item" @click="goToPost(post.id)">
+                    <el-card shadow="hover" :body-style="{ padding: '20px', border: 'none' }"
+                        @mouseenter="onMouseEnter($event)" @mouseleave="onMouseLeave($event)" class="post-card">
+                        <div class="post-header">
+                            <el-avatar :src="post.author.avatar"></el-avatar>
+                            <div class="post-info">
+                                <div class="post-title">{{ post.title }}</div>
+                                <div class="post-meta">楼主 发布于 {{ post.publishDate }}</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            {{ post.summary }}
+                        </div>
+                        <div class="post-footer">
+                            <el-tag v-for="tag in post.tags" :key="tag" type="success">{{ tag }}</el-tag>
+                            <el-icon><i class="el-icon-message"></i></el-icon>
+                            <span>{{ post.commentsCount }}</span>
+                        </div>
+                    </el-card>
+                </div>
+            </div>
 
-    <!-- 分页组件 -->
-    <el-pagination
-      background
-      layout="prev, pager, next"
-      :total="posts.length"
-      :page-size="pageSize"
-      v-model:currentPage="currentPage"
-      @current-change="handlePageChange"
-      class="pagination"
-    />
-  </div>
+            <!-- 分页组件 -->
+            <el-pagination background layout="prev, pager, next" :total="posts.length" :page-size="pageSize"
+                v-model:currentPage="currentPage" @current-change="handlePageChange" class="pagination" />
+
+        </el-main>
+    </el-container>
+
+    <!--rich text-->
+    <el-drawer v-model="drawer" size="80%" direction="btt" title="发布帖子">
+        <myEditor/>
+    </el-drawer>
 </template>
 <script >
 import { ElAvatar, ElTag, ElIcon, ElPagination } from 'element-plus'
 import { ChatLineSquare } from "@element-plus/icons-vue";
-const pageSize = 5;
+import myHead from "../Header.vue"
+import myEditor from "../../components/Editor.vue" 
+
+
+import { ref } from 'vue'
+const drawer = ref(false)
+const pageSize = 10;
+
 export default {
     components: {
+        myEditor,
+        myHead,
         ElAvatar,
         ElTag,
         ElIcon,
@@ -60,6 +77,8 @@ export default {
     },
     data() {
         return {
+            drawer,
+            showPostDialog: true,
             posts: [
                 {
                     id: 1,
@@ -187,6 +206,10 @@ export default {
     //     this.fetchPosts();
     // },
     methods: {
+        handleClose(done) {
+            this.showPostDialog = false;
+            done();
+        },
         // 页码改变时触发
         handlePageChange(page) {
             this.currentPage = page;
@@ -218,9 +241,28 @@ export default {
 </script>
   
 <style scoped>
-.post-list {
-    padding: 10px;
+.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    /* 确保头部处于页面最前 */
 }
+
+.content {
+    padding-top: 60px;
+    /* 根据myHead组件的高度调整padding */
+}
+
+
+.sidebar {
+    width: 200px;
+    /* 设置 sidebar 的宽度 */
+    margin-right: 20px;
+    /* 添加右侧间距 */
+}
+
 
 .post-item {
     padding: 0px 0;

@@ -20,17 +20,22 @@ const router = createRouter({
         },
       ]
     },
+    // {
+    //   path: '/home',
+    //   name: 'home',
+    //   component: () => import('../views/header.vue'),
+    //   children: [
+    //     {
+    //       path: 'posts',
+    //       name: 'posts',
+    //       component: () => import('../views/home/postList.vue')
+    //     }
+    //   ]
+    // },
     {
-      path: '/home',
-      name: 'home',
-      component: () => import('../views/header.vue'),
-      children: [
-        {
-          path: 'posts',
-          name: 'posts',
-          component: () => import('../views/home/postList.vue')
-        }
-      ]
+      path: '/home/posts',
+      name: 'posts',
+      component: () => import('../views/home/postList.vue'),
     },
     {
       path: '/:catchAll(.*)',

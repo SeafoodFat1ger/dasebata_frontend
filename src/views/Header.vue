@@ -1,97 +1,69 @@
 <template>
-    <div style="height: 100vh">
-        <el-container style="height: 100%">
-            <!--左侧栏。构成：网站名及logo+导航栏-->
-            <!--:style动态设置整个左侧栏的宽度，实现折叠功能：hideMenu为true，宽度变为0；为false，宽度就是默认样式中的270px-->
-            <el-aside class="content-aside" :style="{ width: hideMenu ? '0' : '270px' }">
-                <!--左侧栏上方：网站名和logo-->
-                <!--:style动态设置字体透明度，使得折叠过渡更加自然：hideMenu为true，字体变透明；为false，字体不透明-->
-                <div class="content-aside-topShow-logoAndName" :style="{ opacity: hideMenu ? '0' : '1' }">
-                    BUAA BBS
+        <el-container>
+            <!--顶部栏-->
+            <el-header class="content-header" style="background-color: white;">
+                <div class="content-aside-topShow-logoAndName">
+                    北航BBS
                 </div>
-                <!--左侧导航栏-->
-            </el-aside>
-            <el-container>
-                <!--顶部栏-->
-                <el-header class="content-header">
-                    <!--控制左侧导航栏展开，隐藏的按钮-->
-                    <div>
-                        <!--点击按钮，对hideMenu取反-->
-                        <!--根据hideMenu的值不同，按钮图标也不同-->
-                        <el-button style="margin-top: 10px;font-size: 25px;width: 20px" :icon="hideMenu ? Expand : Fold"
-                            text @click="hideMenu = !hideMenu" />
-                    </div>
+                <!--添加一个输入框-->
+                <div style="flex: 1;margin: 0 150px 0 40px">
+                    <el-input :prefix-icon="Search" style="margin-top: 15px"></el-input>
+                </div>
 
+                <div style="flex: 1;margin: 0 0 0 10px">
 
-                    <!--添加一个输入框-->
-                    <div style="flex: 1;margin: 0 150px 0 40px">
-                        <el-input :prefix-icon="Search" style="margin-top: 15px"></el-input>
-                    </div>
+                    <!--菜单栏-->
+                    <el-menu :default-active="router.currentRoute.value.path" mode="horizontal" :ellipsis="false" router>
+                        <el-menu-item index="/home/posts">
+                            <el-icon>
+                                <Document />
+                            </el-icon>
+                            <span>帖子列表</span>
+                        </el-menu-item>
+                        <el-menu-item index="/home/chats">
+                            <el-icon>
+                                <ChatLineSquare />
+                            </el-icon>
+                            <span>消息列表</span>
+                        </el-menu-item>
+                        <el-menu-item index="/home/tools">
+                            <el-icon>
+                                <Tools />
+                            </el-icon>
+                            <span>工具箱</span>
+                        </el-menu-item>
+                    </el-menu>
+                </div>
 
-                    <div style="flex: 1;margin: 0 0 0 10px">
+                <!--展示当前登录的用户名和邮箱-->
+                <div class="user-name-email">
+                    <!--注意：username,email对应的是后端里AccountUser的字段-->
+                    <div class="user-name">abc</div>
+                    <div class="user-email">def</div>
+                </div>
+                <!--引入element-plus的头像和下拉菜单-->
+                <div style="margin-top: 10px" class="user-avatar">
+                    <el-dropdown>
+                        <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item :icon="User">个人信息</el-dropdown-item>
+                                <el-dropdown-item :icon="SwitchButton" divided @click="logout">退出登录</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                </div>
+            </el-header>
 
-                        <!--菜单栏-->
-                        <el-menu :default-active="router.currentRoute.value.path" mode="horizontal" :ellipsis="false"
-                            router>
-                            <el-menu-item index="/home/posts">
-                                <el-icon>
-                                    <Document />
-                                </el-icon>
-                                <span>帖子列表</span>
-                            </el-menu-item>
-                            <el-menu-item index="/">
-                                <el-icon>
-                                    <ChatLineSquare />
-                                </el-icon>
-                                <span>消息列表</span>
-                            </el-menu-item>
-                            <el-menu-item index="3">
-                                <el-icon>
-                                    <Tools />
-                                </el-icon>
-                                <span>工具箱</span>
-                            </el-menu-item>
-                        </el-menu>
-                    </div>
-
-                    <!--展示当前登录的用户名和邮箱-->
-                    <div class="user-name-email">
-                        <!--注意：username,email对应的是后端里AccountUser的字段-->
-                        <div class="user-name">abc</div>
-                        <div class="user-email">def</div>
-                    </div>
-                    <!--引入element-plus的头像和下拉菜单-->
-                    <div style="margin-top: 10px" class="user-avatar">
-                        <el-dropdown>
-                            <el-avatar
-                                src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
-                            <template #dropdown>
-                                <el-dropdown-menu>
-                                    <el-dropdown-item :icon="User">个人信息</el-dropdown-item>
-                                    <el-dropdown-item :icon="SwitchButton" divided @click="logout">退出登录</el-dropdown-item>
-                                </el-dropdown-menu>
-                            </template>
-                        </el-dropdown>
-                    </div>
-                </el-header>
-                <!--主体内容-->
-                <el-main style="padding: 0">
-                    <router-view/>
-                </el-main>
-            </el-container>
         </el-container>
 
-    </div>
 </template>
   
 <script setup>
 import { ElMessage } from "element-plus";
 import router from "@/router";
-import { User, SwitchButton, Fold, Search, Compass, Menu, Expand, Document, Help, ChatLineSquare, Tools } from "@element-plus/icons-vue";
-import { ref } from "vue";
+import { House, User, SwitchButton, Fold, Search, Expand, Document, ChatLineSquare, Tools } from "@element-plus/icons-vue";
 
-
-const hideMenu = ref(false)//控制左侧栏是否隐藏，默认不隐藏
 
 const logout = () => {
     //向后端发送对应路径的get请求
@@ -102,17 +74,18 @@ const logout = () => {
         localStorage.removeItem('user')//将localStorage存储的用户信息也删掉
         router.push('/')//跳转回登录页面
     })
+    
 }
+
 </script>
   
 <style scoped>
-.content-aside {
-    border-right: solid 1px #e0e0e0;
-    /*左侧栏右边界添加灰线分割线*/
-    width: 270px;
-    /*左侧导航栏默认宽度*/
-    transition: 0.3s;
-    /*属性变化（侧边栏折叠）不立即生效，而是有一个0.3s的过渡时间*/
+.content-header {
+    display: flex;
+    /*整个顶部栏采用流式布局*/
+    border-bottom: solid 1px #e0e0e0;
+    /*顶部栏下边界添加灰色分割线*/
+    padding: 0 20px;
 }
 
 .content-aside-topShow-logoAndName {
@@ -123,23 +96,6 @@ const logout = () => {
     /*文字行距设置为60px*/
     text-align: center;
     /*文字居中显示*/
-    transition: 0.3s
-        /*属性变化（侧边栏折叠时，字体透明度动态变化）不立即生效，而是有一个0.3s的过渡时间*/
-}
-
-.content-aside-menu {
-    height: calc(100% - 60px);
-    /*菜单高度根据顶上的网站名动态计算，避免溢出*/
-    border: none;
-    /*把element-ul自带的分割线去掉，用我自定义的分割线*/
-}
-
-.content-header {
-    display: flex;
-    /*整个顶部栏采用流式布局*/
-    border-bottom: solid 1px #e0e0e0;
-    /*顶部栏下边界添加灰色分割线*/
-    padding: 0 20px;
 }
 
 .user-avatar:hover {
@@ -164,5 +120,4 @@ const logout = () => {
     color: grey;
     font-size: 14px;
     line-height: 14px
-}
-</style>
+}</style>

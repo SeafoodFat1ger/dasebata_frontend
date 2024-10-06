@@ -23,9 +23,6 @@
         <el-col :span="12" style="text-align: left">
           <el-checkbox v-model="form.remember" label="记住我" size="large" />
         </el-col>
-        <el-col :span="12" style="text-align: right">
-          <el-link @click="router.push('/forget')">忘记密码？</el-link>
-        </el-col>
       </el-row>
     </div>
     <div style="margin-top: 40px">
@@ -57,7 +54,7 @@ const login = () =>{
   if(!form.username||!form.password){
     ElMessage.warning("请填写用户名和密码")
   }else{
-    router.push('/index')
+    router.push('/home/posts')
     //使用封装好的post方法
     post('/api/auth/login',{
       username: form.username,
@@ -65,7 +62,7 @@ const login = () =>{
       remember: form.remember
     },(message) =>{//登录成功
       ElMessage.success(message)
-      router.push('/index')
+      router.push('/home/posts')
       // //先获取用户信息
       // get('/api/user/me',(message)=>{
       //   //获取成功，就将用户信息存储在前端，然后才跳转到index
