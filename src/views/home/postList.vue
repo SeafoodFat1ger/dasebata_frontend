@@ -15,6 +15,7 @@
             </el-menu>
         </el-aside>
         <el-main>
+            <!-- <router-view></router-view> -->
             <!-- 渲染当前页面的帖子 -->
             <div>
                 <div v-for="post in paginatedPosts" :key="post.id" class="post-item" @click="goToPost(post.id)">
@@ -51,11 +52,12 @@
         <myEditor/>
     </el-drawer>
 </template>
-<script >
+
+<script>
 import { ElAvatar, ElTag, ElIcon, ElPagination } from 'element-plus'
 import { ChatLineSquare } from "@element-plus/icons-vue";
 import myEditor from "../../components/Editor.vue" 
-
+import router from "@/router";
 
 import { ref } from 'vue'
 const drawer = ref(false)
@@ -201,10 +203,10 @@ export default {
     //     this.fetchPosts();
     // },
     methods: {
-        handleClose(done) {
-            this.showPostDialog = false;
-            done();
-        },
+        // handleClose(done) {
+        //     this.showPostDialog = false;
+        //     done();
+        // },
         // 页码改变时触发
         handlePageChange(page) {
             this.currentPage = page;
@@ -227,9 +229,8 @@ export default {
         onMouseLeave(event) {
             event.currentTarget.style.backgroundColor = '';
         },
-        // 点击帖子跳转到对应的详情页
         goToPost(id) {
-            this.$router.push(`/home/posts/${id}`);
+            router.push(`/home/postDetail/${id}`); // 动态路由参数跳转到对应的 postDetail 页面
         }
     }
 };
