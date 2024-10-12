@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-
-const router = createRouter({
+// 定义路由
+const router = createRouter({ // 创建路由实例
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
+  routes: [ // 定义所有路由路径的配置，每个路径都映射到相应的组件
+    { // 根路径(/) 和子路由
+      path: '/',  // 根路径 /
       name: 'welcome',
       component: () => import('../views/WelcomeViews.vue'),
-      children: [
+      children: [ // 定义子路由 在/路径下进一步匹配的路径
         {
           path: '',
           name: 'login',
@@ -20,16 +20,23 @@ const router = createRouter({
         },
       ]
     },
+    // 首页/home 及其子路由
     {
       path: '/home',
       name: 'home',
-      component: () => import('../views/Header.vue'),
+      component: () => import('../views/TopHeader.vue'),
       children: [
         {
           path: 'posts',
           name: 'posts',
           component: () => import('../views/home/postList.vue'),
         },
+        // 新增帖子详情(postDetail)
+        // {
+        //   path: 'postDetail/:id',
+        //   name: 'PostDetail',
+        //   component: () => import('../views/home/postDetail.vue')
+        // },
         {
           path: 'profile',
           name: 'profile',
@@ -57,11 +64,15 @@ const router = createRouter({
       ]
     },
     {
-      path: '/:catchAll(.*)',
+      path: '/:catchAll(.*)', // 匹配所有未定义路径
       name: '404',
       component: () => import('../views/404.vue')
-    }
-
+    },
+    {
+      path: '/home/postDetail/:id',
+      name: 'PostDetail',
+      component: () => import('../views/home/postDetail.vue')
+    },
   ]
 })
 

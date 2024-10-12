@@ -15,35 +15,12 @@
             </el-menu>
         </el-aside>
         <el-main>
-            <!-- <router-view></router-view> -->
-            <!-- 渲染当前页面的帖子 -->
             <div>
-                <div v-for="post in paginatedPosts" :key="post.id" class="post-item" @click="goToPost(post.id)">
-                    <el-card shadow="hover" :body-style="{ padding: '20px', border: 'none' }"
-                        @mouseenter="onMouseEnter($event)" @mouseleave="onMouseLeave($event)" class="post-card">
-                        <div class="post-header">
-                            <el-avatar :src="post.author.avatar"></el-avatar>
-                            <div class="post-info">
-                                <div class="post-title">{{ post.title }}</div>
-                                <div class="post-meta">楼主 发布于 {{ post.publishDate }}</div>
-                            </div>
-                        </div>
-                        <div class="post-content">
-                            {{ post.summary }}
-                        </div>
-                        <div class="post-footer">
-                            <el-tag v-for="tag in post.tags" :key="tag" type="success">{{ tag }}</el-tag>
-                            <el-icon><i class="el-icon-message"></i></el-icon>
-                            <span>{{ post.commentsCount }}</span>
-                        </div>
-                    </el-card>
-                </div>
+              <PostItem v-for="post in paginatedPosts" :key="post.id" :post="post" />
             </div>
-
             <!-- 分页组件 -->
             <el-pagination background layout="prev, pager, next" :total="posts.length" :page-size="pageSize"
                 v-model:currentPage="currentPage" @current-change="handlePageChange" class="pagination" />
-
         </el-main>
     </el-container>
 
@@ -60,11 +37,13 @@ import myEditor from "../../components/Editor.vue"
 import router from "@/router";
 
 import { ref } from 'vue'
+import PostItem from "@/components/PostItem.vue";
 const drawer = ref(false)
 const pageSize = 10;
 
 export default {
     components: {
+      PostItem,
         myEditor,
         ElAvatar,
         ElTag,
@@ -257,40 +236,6 @@ export default {
     /* 设置 sidebar 的宽度 */
     margin-right: 20px;
     /* 添加右侧间距 */
-}
-
-
-.post-item {
-    padding: 0px 0;
-    transition: background-color 0.3s;
-}
-
-.post-header {
-    display: flex;
-    align-items: center;
-}
-
-.post-info {
-    margin-left: 10px;
-}
-
-.post-title {
-    font-weight: bold;
-}
-
-.post-meta {
-    color: #999;
-}
-
-.post-content {
-    margin-top: 10px;
-    color: #333;
-}
-
-.post-footer {
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
 }
 
 .post-footer .el-icon {

@@ -21,9 +21,18 @@ npm install element-plus
 npm run dev
 ```
 
-idea下debug
+
+
+zxy：
+
+- 新增一些组件，header改为topheader
+- postDetail别看，需要优化
+
+idea下debug:
 
 ```
 Ctrl + Shift + 网址
 ```
+
+
 
