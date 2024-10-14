@@ -8,13 +8,17 @@
       <el-input v-model="form.username" type="text" placeholder="用户名/邮箱">
         <!--给输入框引入一个图标-->
         <template #prefix>
-          <el-icon><User /></el-icon>
+          <el-icon>
+            <User />
+          </el-icon>
         </template>
       </el-input>
       <el-input v-model="form.password" type="password" style="margin-top: 20px" placeholder="密码">
         <!--给输入框引入一个图标-->
         <template #prefix>
-          <el-icon><Lock /></el-icon>
+          <el-icon>
+            <Lock />
+          </el-icon>
         </template>
       </el-input>
     </div>
@@ -38,10 +42,14 @@
 </template>
 
 <script setup>
-import {User,Lock} from '@element-plus/icons-vue'
-import {reactive} from "vue";
-import {ElMessage} from "element-plus";
+import { User, Lock } from '@element-plus/icons-vue'
+import { reactive } from "vue";
+import { ElMessage } from "element-plus";
 import router from "@/router";
+import { post, get } from "@/net/index";
+import { useStore } from "@/stores";
+
+const store = useStore()
 
 //绑定username,password,remember数据
 const form = reactive({
@@ -49,34 +57,31 @@ const form = reactive({
   password: '',
   remember: false
 })
+
 //点击“登录”
-const login = () =>{
-  if(!form.username||!form.password){
+const login = () => {
+  if (!form.username || !form.password) {
     ElMessage.warning("请填写用户名和密码")
-  }else{
-    router.push('/home/posts')
+  } else {
     //使用封装好的post方法
-    post('/api/auth/login',{
+    post('/users/login', {
       username: form.username,
       password: form.password,
-      remember: form.remember
-    },(message) =>{//登录成功
-      ElMessage.success(message)
-      router.push('/home/posts')
-      // //先获取用户信息
-      // get('/api/user/me',(message)=>{
-      //   //获取成功，就将用户信息存储在前端，然后才跳转到index
-      //   store.auth.user = message
-      //   localStorage.setItem("user", JSON.stringify(message))//存在localStorage永久存储
-      //   router.push('/index')
-      // },()=>{
-      //   store.auth.user = null
-      // })
+      //remember: form.remember
+    }, (message, data) => {//登录成功
+      //ElMessage.success(message)
+      //先获取用户信息
+      get(`/users/get/${data}`, (getMessage, getData) => {
+        //获取成功，就将用户信息存储在前端，然后才跳转到index
+        store.auth.user = getData
+        localStorage.setItem("user", JSON.stringify(getData))//存在localStorage永久存储
+        router.push('/home/posts')
+      }, () => {
+        store.auth.user = null
+      })
     })
   }
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
