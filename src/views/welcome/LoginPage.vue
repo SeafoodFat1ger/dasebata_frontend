@@ -69,12 +69,12 @@ const login = () => {
       password: form.password,
       //remember: form.remember
     }, (message, data) => {//登录成功
-      //ElMessage.success(message)
       //先获取用户信息
       get(`/users/get/${data}`, (getMessage, getData) => {
         //获取成功，就将用户信息存储在前端，然后才跳转到index
         store.auth.user = getData
         localStorage.setItem("user", JSON.stringify(getData))//存在localStorage永久存储
+        ElMessage.success(message)
         router.push('/home/posts')
       }, () => {
         store.auth.user = null

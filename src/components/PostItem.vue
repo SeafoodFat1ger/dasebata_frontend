@@ -27,19 +27,19 @@ export default {
     <el-card shadow="hover" :body-style="{ padding: '20px', border: 'none' }"
              @mouseenter="onMouseEnter($event)" @mouseleave="onMouseLeave($event)" class="post-card">
       <div class="post-header">
-        <el-avatar :src="post.author.avatar"></el-avatar>
+        <el-avatar :src="post.postAuthor.avatar"></el-avatar>
         <div class="post-info">
-          <div class="post-title">{{ post.title }}</div>
+          <div class="post-title">{{ post.postTitle }}</div>
           <div class="post-meta">楼主 发布于 {{ post.publishDate }}</div>
         </div>
       </div>
       <div class="post-content">
-        {{ post.summary }}
+        {{ post.postSummary }}
       </div>
       <div class="post-footer">
-        <el-tag v-for="tag in post.tags" :key="tag" type="success">{{ tag }}</el-tag>
+        <el-tag v-for="tag in post.postTags" :key="tag" type="success">{{ tag }}</el-tag>
         <el-icon><i class="el-icon-message"></i></el-icon>
-        <span>{{ post.commentsCount }}</span>
+        <span>{{ "????" }}</span>
       </div>
     </el-card>
   </div>
