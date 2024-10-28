@@ -6,6 +6,7 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import axios from "axios";
 import { createPinia } from "pinia";
+import './assets/icon/iconfont.css'
 
 const app = createApp(App)
 //配置服务器地址（后端）前缀

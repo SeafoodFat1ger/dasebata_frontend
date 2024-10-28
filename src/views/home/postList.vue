@@ -3,7 +3,7 @@
     <!-- 左侧菜单 -->
     <el-aside width="200px">
       <el-button type="primary" style="margin-left: 16px" @click="drawer = true">
-        发起帖子 {{ drawer }}
+        发起帖子
       </el-button>
       <el-menu
           default-active="0"
@@ -49,6 +49,7 @@
           :background="background"
           layout="prev, pager, next, sizes, jumper"
           :total="total"
+          @size-change="handlePageSizeChange"
           @current-change="handlePageChange"
       />
     </el-main>
@@ -72,55 +73,37 @@
           <el-option label="寻找作乐" value="5"/>
         </el-select>
       </el-form-item>
-    </el-form>
+
+      <el-form-item label="话题" style="display: flex; align-items: center;">
+        <el-autocomplete
+            v-model="inputValue"
+            value-key="name"
+            :fetch-suggestions="querySearchAsync"
+            clearable
+            placeholder="请输入话题"
+            @select="handleTagSelect"
+            style="flex: 1;"
+        />
+        <el-button
+            :disabled="isNewTagVisible === false || inputValue === ''"
+            @click="createTag"
+            type="primary"
+            style="margin-left: auto;"
+        >
+          新建话题
+        </el-button>
+      </el-form-item>
 
 
-    <div>
-      <el-input
-          v-model="inputValue"
-          placeholder="输入话题，使用#开头"
-          @input="handleInput"
-      />
-
-
-      <el-autocomplete
-          size="small"
-          style="width: 250px"
-          v-model="inputValue"
-          value-key="name"
-          :fetch-suggestions="querySearchAsync"
-          clearable
-          placeholder="请输入话题，使用#开头"
-          @select="handleTagSelect"
-      />
-
-
-      <div>
+      <el-form-item label="">
         <el-tag
             v-for="tag in tags"
             closable
             @close="removeTag(tag)"
         >{{ tag }}
         </el-tag>
-      </div>
-
-
-      <!--      <el-dropdown v-if="!isNewTagVisible">-->
-      <!--          <el-dropdown-item-->
-      <!--              v-for="tag in tagSuggestions"-->
-      <!--              :key="tag.tagId"-->
-      <!--              @click="addTag(tag)"-->
-      <!--          >{{ tag.tagTitle }}-->
-      <!--          </el-dropdown-item>-->
-      <!--      </el-dropdown>-->
-
-      <el-button
-          v-if="isNewTagVisible === true"
-          @click="createTag"
-          type="primary"
-      >新建话题 "{{ newTag }}"
-      </el-button>
-    </div>
+      </el-form-item>
+    </el-form>
 
 
     <myEditor @update:content="updateContent"/>
@@ -142,8 +125,9 @@ import myEditor from "../../components/Editor.vue";
 import router from "@/router";
 import {reactive, ref} from 'vue';
 import PostItem from "@/components/PostItem.vue";
-import {get} from '@/net';
+import {post, get} from '@/net';
 import {useStore} from "@/stores";
+import message from "@element-plus/icons/lib/Message.js";
 
 const store = useStore()
 
@@ -164,11 +148,12 @@ export default {
       postContent: '',
     })
     let drawer = ref(false);
-    let posts = ref([]);
+    const posts = ref([]);
     const currentPage = ref(1);
+    const currentPageSize = ref(10);
     const pageSize = ref(10);
     const pageSizes = [10, 20, 30, 40];
-    let total = ref(100);
+    const total = ref(0);
     const background = ref(true);
     const disabled = ref(false);
     let isNewTagVisible = ref(false);
@@ -176,42 +161,13 @@ export default {
     const tags = ref([]);
     const newTag = ref('');
     const activeArea = ref(0);
-    const tagSuggestions = ref([
-      {
-
-        id: 1, name: '暗黑破坏神2'
-      },
-      {
-
-        id: 2, name: '国家崛起2'
-      },
-      {
-
-        id: 3, name: '帝国时代4'
-      },
-      {
-
-        id: 4, name: '红色警戒'
-      },
-      {
-
-        id: 5, name: '肆狂神战纪'
-      },
-      {
-
-        id: 6, name: '艾诺迪亚'
-      },
-      {
-
-        id: 7, name: '地下城守护者2'
-      },
-    ])
+    const tagSuggestions = ref([])
 
 
     // 获取帖子数据
     const fetchPosts = async (areaId = 0, pageNumber = 1) => {
-      get(`/posts/get/${areaId}/${pageNumber}`, (message, data) => {
-            posts.value = data.posts
+      get(`/posts/get/post/${areaId}/${pageNumber}/${currentPageSize.value}`, (message, data) => {
+            posts.value = data.records
             total.value = data.postsTotal
           }
       )
@@ -224,14 +180,35 @@ export default {
     const submitPost = async () => {
       if (!form.postTitle || !form.postArea || !form.postContent) {
         ElMessage.warning("请填写完整帖子信息")
+        return
       }
-      console.log(form.postArea)
-      const userId = store.auth.user.userId;
+
+      const userId = store.auth.user.id;
+
       const requestData = {
-        userId,
-        postTitle: form.postTitle,
-        postArea: form.postArea,
+        "userId": userId,
+        "postTitle": form.postTitle,
+        "postArea": form.postArea,
+        "postTags": [],
+        "postType": "post",
+        "postContents": [
+          {
+            "type": "text",
+            "data": form.postContent,
+          },
+          {
+            "type": "image",
+            "data": "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
+          },
+        ]
       }
+      post(`/posts/add`, requestData,
+          (message) => {
+            ElMessage.success(message)
+            drawer.value = false;
+            fetchPosts(activeArea.value, 0);
+          }
+      )
 
     };
 
@@ -240,6 +217,12 @@ export default {
       currentPage.value = 1;
       await fetchPosts(activeArea.value, 1);
     };
+
+    const handlePageSizeChange = async (pageSizes) => {
+      currentPageSize.value = pageSizes;
+      await fetchPosts(activeArea.value, currentPage.value); // 请求新数据
+    }
+
 
     const handlePageChange = async (page) => {
       currentPage.value = page;
@@ -252,45 +235,47 @@ export default {
 
 
     const handleTagSelect = (item) => {
-
-      addTag(item)
+      if (tags.size() > 5) {
+        ElMessage.warning("话题数不能多于5个");
+        return;
+      }
+      inputValue.value = '';
+      isNewTagVisible.value = false;
+      addTag(item);
       console.log(item)
     }
 
 
     const querySearchAsync = (queryString, cb) => {
+      if (queryString.length === 0) {
+        return;
+      }
+
+      //TODO 接口！！！！！！
+      checkTopicExistence(queryString);
+
       const results = queryString
           ? []
           : tagSuggestions.value
 
-      console.log(isNewTagVisible.value)
       cb(results)
+
       if (results.length === 0) {
         isNewTagVisible.value = true
-        newTag.value = inputValue
-      }else{
+        newTag.value = queryString
+      } else {
         isNewTagVisible.value = false
         newTag.value = ''
       }
+
+
     }
 
 
-    const handleInput = () => {
-      const first = inputValue.value.charAt(0);
-      if (first === '#') {
-        const topic = inputValue.value.substring(1);
-        // console.log(topic);
-        checkTopicExistence(topic);
-      } else {
-        ElMessage.warning("话题以#开头")
-      }
-    };
     const checkTopicExistence = async (topic) => {
 
       // const response = await fetch(`/api/topics/check?name=${topic}`);
       // const data = await response.json();
-
-
       if (true) {
         isNewTagVisible.value = true;
         newTag.value = topic;
@@ -309,7 +294,7 @@ export default {
 
 
     const createTag = () => {
-      //TODO post creat
+      //TODO 接口！！！！！！
       addTag(newTag.value)
 
       inputValue.value = '';
@@ -342,6 +327,7 @@ export default {
       tagSuggestions,
       newTag,
       isNewTagVisible,
+      handlePageSizeChange,
       handlePageChange,
       cancelForm,
       submitPost,
