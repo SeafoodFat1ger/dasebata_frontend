@@ -32,6 +32,17 @@ const router = createRouter({ // 创建路由实例
                     component: () => import('../views/home/home.vue'),
                 },
                 {
+                    path: 'chats',
+                    name: 'chats',
+                    component: () => import('../views/chat/chatList.vue'),
+                    children:[
+                        {
+                            path: ':userId',
+                            component: () => import('../views/chat/chatWindow.vue'),
+                        }
+                    ]
+                },
+                {
                     path: 'posts',
                     name: 'posts',
                     component: () => import('../views/home/postList.vue'),

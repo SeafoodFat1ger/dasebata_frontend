@@ -13,7 +13,7 @@
 
       <!-- 响应式菜单栏 -->
       <div v-if="!isSmallScreen" class="content-menu">
-        <el-menu :default-active="router.currentRoute.value.path" mode="horizontal" :ellipsis="false" router>
+        <el-menu  mode="horizontal" :ellipsis="false" router>
           <el-menu-item index="/home/home">
             <el-icon>
               <House/>
