@@ -113,9 +113,6 @@ const rules = {
     { required: true, message: '请输入邮箱地址', trigger: 'blur' },
     { type: 'email', message: '请输入合法的电子邮箱地址', trigger: ['blur', 'change'] }
   ],
-  code: [
-    { required: true, message: '请输入获取的验证码', trigger: 'blur' }
-  ]
 }
 //定义对整个表单进行响应的变量
 const formRef = ref()

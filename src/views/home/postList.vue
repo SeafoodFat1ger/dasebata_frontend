@@ -37,10 +37,6 @@
 
     </el-aside>
     <el-main>
-      <div>
-        <PostItem v-for="post in posts" :key="post.postId" :post="post"/>
-      </div>
-
       <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
@@ -52,6 +48,9 @@
           @size-change="handlePageSizeChange"
           @current-change="handlePageChange"
       />
+      <div>
+        <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"/>
+      </div>
     </el-main>
   </el-container>
 
@@ -189,7 +188,7 @@ export default {
         "userId": userId,
         "postTitle": form.postTitle,
         "postArea": form.postArea,
-        "postTags": [],
+        "postTags": tags.value,
         "postType": "post",
         "postContents": [
           {
@@ -206,7 +205,7 @@ export default {
           (message) => {
             ElMessage.success(message)
             drawer.value = false;
-            fetchPosts(activeArea.value, 0);
+            fetchPosts(activeArea.value, 1);
           }
       )
 
@@ -246,13 +245,17 @@ export default {
     }
 
 
-    const querySearchAsync = (queryString, cb) => {
+    const querySearchAsync = async (queryString, cb) => {
       if (queryString.length === 0) {
         return;
       }
 
       //TODO 接口！！！！！！
-      checkTopicExistence(queryString);
+      await get(`/posts/getAllTags/1/10`, (message, data) => {
+            tagSuggestions.value = tags
+          }
+      )
+
 
       const results = queryString
           ? []
@@ -269,27 +272,6 @@ export default {
       }
 
 
-    }
-
-
-    const checkTopicExistence = async (topic) => {
-
-      // const response = await fetch(`/api/topics/check?name=${topic}`);
-      // const data = await response.json();
-      if (true) {
-        isNewTagVisible.value = true;
-        newTag.value = topic;
-      } else {
-        isNewTagVisible.value = false;
-        tagSuggestions.value = [
-          {tagId: 1, tagTitle: "学习技巧"},
-          {tagId: 2, tagTitle: "编程挑战"},
-          {tagId: 3, tagTitle: "生活窍门"},
-          {tagId: 4, tagTitle: "心理健康"},
-          {tagId: 5, tagTitle: "情感交流"},
-          {tagId: 6, tagTitle: "科技资讯"}
-        ];
-      }
     }
 
 
@@ -332,8 +314,6 @@ export default {
       cancelForm,
       submitPost,
       updateContent,
-      handleInput,
-      checkTopicExistence,
       createTag,
       addTag,
       removeTag,

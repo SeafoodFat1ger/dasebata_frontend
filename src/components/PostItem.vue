@@ -11,7 +11,11 @@ export default {
     post: {
       type: Object,
       required: true
-    }
+    },
+    needTag: {
+      type: Boolean,
+      required: true
+    },
   },
   methods: {
     onMouseEnter(event) {
@@ -22,6 +26,9 @@ export default {
     },
     goToPost(id) {
       this.$router.push(`/home/postDetail/${id}`); // 路由跳转
+    },
+    navigateToPage(tag) {
+      this.$router.push(`/home/tagDetail/${tag}`); // 路由跳转
     }
   }
 }
@@ -35,14 +42,17 @@ export default {
         <el-avatar :src="post.postAuthor.avatar"></el-avatar>
         <div class="post-info">
           <div class="post-title">{{ post.postTitle }}</div>
-          <div class="post-meta">楼主 发布于 {{ post.postPublishDate }}</div>
+          <div class="post-meta">{{ post.postAuthor.name }} 发布于 {{ post.postPublishDate }}</div>
         </div>
       </div>
       <div class="post-content">
         {{ post.postSummary }}
       </div>
       <div class="post-footer">
-        <el-tag v-for="tag in post.postTags" :key="tag" type="success">{{ tag }}</el-tag>
+        <el-tag v-if="needTag"
+                @click.stop="navigateToPage(tag)"
+                v-for="tag in post.postTags" :key="tag" type="success">{{ tag }}
+        </el-tag>
         <el-icon>
           <ChatLineSquare/>
         </el-icon>
