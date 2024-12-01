@@ -171,12 +171,10 @@ onBeforeUnmount(() => {
 });
 
 const logout = () => {
-  get('/api/auth/logout', (message) => { // 退出登录成功
-    ElMessage.success(message);
-    store.auth.user = null;
-    localStorage.removeItem('user'); // 删除localStorage中的用户信息
-    router.push('/'); // 跳转到登录页面
-  });
+  store.auth.user = null;
+  localStorage.removeItem('user');
+  ElMessage.success("退出登录成功");
+  router.push('/');
 };
 
 const goProfile = () => {

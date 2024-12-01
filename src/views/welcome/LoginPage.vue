@@ -22,13 +22,7 @@
         </template>
       </el-input>
     </div>
-    <div style="margin-top: 10px">
-      <el-row>
-        <el-col :span="12" style="text-align: left">
-          <el-checkbox v-model="form.remember" label="记住我" size="large" />
-        </el-col>
-      </el-row>
-    </div>
+
     <div style="margin-top: 40px">
       <el-button @click="login()" style="width: 270px" type="success" plain>登录</el-button>
     </div>
@@ -75,7 +69,7 @@ const login = () => {
         store.auth.user = getData
         localStorage.setItem("user", JSON.stringify(getData))//存在localStorage永久存储
         ElMessage.success(message)
-        router.push('/home/posts')
+        router.push('/home/home')
       }, () => {
         store.auth.user = null
       })

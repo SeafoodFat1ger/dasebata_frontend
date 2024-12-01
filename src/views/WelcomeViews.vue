@@ -23,7 +23,16 @@
 </template>
 
 <script setup>
+import {useStore} from "@/stores/index.js";
+import router from "@/router/index.js";
 
+const store = useStore();
+const user = store.auth.user || JSON.parse(localStorage.getItem('user'));
+
+// 如果用户已登录，则直接跳转到 home 页面
+if (user) {
+  router.push({ name: 'homee' });
+}
 </script>
 
 <style scoped>

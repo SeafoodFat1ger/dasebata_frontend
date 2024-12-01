@@ -1,4 +1,5 @@
 import {createRouter, createWebHistory} from 'vue-router'
+import {useStore} from "@/stores/index.js";
 
 // 定义路由
 const router = createRouter({ // 创建路由实例
@@ -110,5 +111,20 @@ const router = createRouter({ // 创建路由实例
         },
     ]
 })
+
+// 设置路由守卫
+router.beforeEach((to, from, next) => {
+    const store = useStore(); // 获取store
+    const user = store.auth.user || JSON.parse(localStorage.getItem('user')); // 从store或localStorage获取用户信息
+
+    // 检查用户是否已登录
+    if (!user && to.name !== 'login' && to.name !== 'register') {
+        // 如果用户未登录，且试图访问需要登录的页面，重定向到登录页面
+        next({ name: 'login' });
+    } else {
+        // 如果用户已登录或访问的是不需要登录的页面，继续访问
+        next();
+    }
+});
 
 export default router
