@@ -140,7 +140,7 @@ export default {
       loadingPost.value = true;  // 设置为加载状态
       get(`/posts/getTag/post/${tagStr.value}/${pageNumber}/10`, (message, data) => {
         posts.value.push(...data.records);  // 新的帖子添加到原来列表中
-        totalPosts.value = data.postsTotal;
+        totalPosts.value = data.total;
         loadingPost.value = false;  // 数据加载完成
       });
     };
@@ -150,7 +150,7 @@ export default {
       loadingProblem.value = true;
       get(`/posts/getTag/problem/${tagStr.value}/${pageNumber}/10`, (message, data) => {
         questions.value.push(...data.records);  // 新的提问添加到原来列表中
-        totalQuestions.value = data.postsTotal;
+        totalQuestions.value = data.total;
         loadingProblem.value = false;
       });
     };

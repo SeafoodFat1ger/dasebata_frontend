@@ -78,7 +78,7 @@
       <!-- 用户头像 -->
       <div class="user-avatar">
         <el-dropdown>
-          <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+          <img :src="avatar" alt="User Avatar" class="avatar">
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item :icon="User" @click="goProfile">个人信息</el-dropdown-item>
@@ -111,6 +111,7 @@ import {
 import {useStore} from "@/stores/index.js";
 
 const store = useStore();
+const avatar = store.auth.user.avatar;
 const userName = store.auth.user.username;
 const userEmail = store.auth.user.email;
 const isSmallScreen = ref(false);
@@ -148,7 +149,7 @@ const logout = () => {
 };
 
 const goProfile = () => {
-  router.push('/home/profile/activity');
+  router.push(`/home/profile/${store.auth.user.id}/activity`);
 };
 
 </script>
@@ -200,6 +201,12 @@ const goProfile = () => {
   .content-menu, .user-info {
     display: none;
   }
+}
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .el-dropdown-link {

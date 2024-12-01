@@ -6,7 +6,10 @@
         <h3 class="card-title">{{ tag.tag }}</h3>
         <p class="card-followers">{{ tag.tagPersonNum }} 人关注</p>
         <!-- 圆形收藏按钮 -->
-        <button class="favorite-btn" @click.stop="toggleFavorite(tag)">
+        <button
+            class="favorite-btn"
+            :class="{ 'focused': tag.isFocus }"
+            @click.stop="toggleFavorite(tag)">
           <el-icon>
             <Star/>
           </el-icon>
@@ -20,9 +23,13 @@
 </template>
 
 <script>
-import {get} from "@/net/index.js";
+import {get, post} from "@/net/index.js";
 import {Star} from "@element-plus/icons-vue";
+import {useStore} from "@/stores";
+import {ElMessage} from "element-plus";
 
+const store = useStore();
+const userId = store.auth.user.id;
 
 export default {
   name: "TopicCards",
@@ -35,7 +42,8 @@ export default {
         "id": 1,
         "tag": "使用交流",
         "image": "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
-        "tagPersonNum": 109
+        "tagPersonNum": 109,
+        "isFocus": false // 默认不收藏
       }], // 存储所有加载的主题数据
       currentPage: 1, // 当前加载的页码
       pageSize: 10, // 每页加载的记录数
@@ -50,7 +58,7 @@ export default {
 
       this.loading = true;
 
-      get(`/posts/getAllTags/${this.currentPage}/${this.pageSize}`, (message, data) => {
+      get(`/posts/getAllTags/${userId}/${this.currentPage}/${this.pageSize}`, (message, data) => {
         this.tags.push(...data.records); // 将新数据追加到现有数组
         this.total = data.postsTotal;
 
@@ -74,8 +82,28 @@ export default {
       this.$router.push(`/home/tagDetail/${tagName}`);
     },
     toggleFavorite(tag) {
-      // 收藏/取消收藏逻辑
-      alert(`收藏功能点击了：${tag.tag}`);
+      tag.isFocus = !tag.isFocus; // 切换收藏状态
+      if (tag.isFocus) {
+        post(`/users/focusTag`,
+            {
+              userId: userId,
+              tag: tag.tag
+            },
+            (message) => {
+              ElMessage.success(message)
+            }
+        )
+      }else {
+        post(`/users/cancelFocusTag`,
+            {
+              userId: userId,
+              tag: tag.tag
+            },
+            (message) => {
+              ElMessage.success(message)
+            }
+        )
+      }
     }
   },
   mounted() {
@@ -94,7 +122,6 @@ export default {
   max-height: 80vh;
   position: relative;
 }
-
 
 .card {
   border: 1px solid #ddd;
@@ -152,6 +179,12 @@ export default {
 .favorite-btn:hover {
   background-color: rgba(49, 162, 232, 0.1);
   color: #409eff;
+}
+
+/* 深色背景和文字的收藏按钮 */
+.favorite-btn.focused {
+  background-color: #409eff; /* 深色背景 */
+  color: #fff; /* 白色文字 */
 }
 
 .loading,

@@ -8,18 +8,20 @@
 import PostItem from "@/components/PostItem.vue";
 import {get} from "@/net/index.js";
 import { onMounted, ref} from "vue";
-import {useStore} from "@/stores";
 
-const store = useStore()
 export default {
-  name: "activity",
   components: {PostItem},
-  setup() {
-    const userId = store.auth.user.id;
+  props: {
+    userId: {
+      type: String,
+      required: true
+    }
+  },
+  setup(props) {
     const posts = ref([]);
     const fetchPosts = async () => {
-      get(`/likes/user/${userId}`, (message, data) => {
-            posts.value = data.records
+      get(`/likes/user/${props.userId}`, (message, data) => {
+            posts.value = data
           }
       )
     }

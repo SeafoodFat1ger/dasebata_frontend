@@ -1,105 +1,174 @@
 <template>
   <div class="container">
-    <!-- Search Bar -->
-
-
     <div class="content">
-      <!-- Recent Contacts Section -->
+      <!-- Search Bar -->
       <div class="contacts">
+        <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="搜索联系人..."
+            class="search-input"
+            @focus="onFocus"
+            @blur="onBlur"
+        />
         <h2>最近联系人</h2>
-        <div v-for="contact in filteredContacts" :key="contact.name" class="contact-card">
-          <div class="contact-info">
-            <span class="contact-name">{{ contact.name }}</span>
-            <span class="contact-last-message">{{ contact.lastMessage }}</span>
+        <div v-for="contact in filteredContacts" :key="contact.id" class="contact-card">
+          <div @click="gotoChat(contact.id)" class="contact-info"  >
+            <el-avatar class="avatar" :src="contact.avatar"/>
+            <div class="contact-details">
+              <span class="contact-name">{{ contact.username }}</span>
+
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Message Box Section (You can add the message box here) -->
-      <div class="message-box">
-        <router-view></router-view>
-      </div>
+      <!-- Message Box Section -->
+      <router-view></router-view>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import {ref, computed, onMounted} from 'vue';
+import {get} from "@/net/index.js"
+import {useStore} from "@/stores/index.js";
 
-const contacts = ref([
-  { name: '技术研究所', lastMessage: '亲爱的，胖虎我们有接单需求' },
-  { name: '知乎学堂', lastMessage: '亲爱的，胖虎你好吗，本期课程' },
-  { name: 'AI技术研究所', lastMessage: '亲爱的，胖虎，你也太幸运了' },
-  { name: '知乎电影', lastMessage: '《白日之下》是香港电影大展' },
-  { name: '创作者小助手', lastMessage: '「好运接龙挑战赛」激动人心' },
-  { name: '知乎实验室', lastMessage: '亲爱的胖虎，你好，这是我' },
-  { name: '考研学习社', lastMessage: '最近想考研吗？' },
-  { name: '知乎游戏', lastMessage: '亲爱的胖虎，你好！' },
-]);
 
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const contacts = ref([]);
 const searchQuery = ref('');
+const isSearchFocused = ref(false);
+const store = useStore();
+const myuser = store.auth.user;
+// 获取最近联系人数据
+const fetchContacts = async () => {
+  get(`/chats/findRelation/${myuser.id}`,
+      (message, data) => {
+        contacts.value = data;
+      }
+  )
+};
+
+const gotoChat = (id) => {
+  router.push(`/home/chats/${id}`); // 路由跳转
+};
+
+onMounted(() => {
+  fetchContacts(); // 组件挂载后获取联系人
+});
 
 // Filter contacts based on the search query
 const filteredContacts = computed(() => {
-  return contacts.value.filter(contact =>
-      contact.name.includes(searchQuery.value)
-  );
+  return isSearchFocused.value || !searchQuery.value
+      ? contacts.value
+      : contacts.value.filter(contact =>
+          contact.username.includes(searchQuery.value)
+      );
 });
+
+// Handle search focus
+const onFocus = () => {
+  isSearchFocused.value = true;
+};
+
+// Handle search blur
+const onBlur = () => {
+  isSearchFocused.value = false;
+};
 </script>
 
 <style scoped>
 .container {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 20px;
+  padding: 60px;
 }
 
 .search-box {
   margin-bottom: 10px;
-  width: 300px;
+  width: 100%;
+  max-width: 300px;
 }
 
-.search-box input {
+.search-input {
   width: 100%;
-  padding: 8px;
-  border-radius: 4px;
+  padding: 10px;
+  border-radius: 6px;
   border: 1px solid #ddd;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 5px rgba(64, 158, 255, 0.5);
 }
 
 .content {
   display: flex;
   gap: 20px;
   width: 100%;
+  align-items: flex-start;
 }
 
 .contacts {
-  width: 300px;
-  margin-top: 60px;
+  width: 100%;
+  max-width: 300px;
+  margin-top: 0;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 20px;
 }
 
 .contact-card {
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 12px;
   border-radius: 8px;
   background-color: #f9f9f9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.contact-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .contact-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  width: 100%;
+}
+
+.contact-details {
+  margin-left: 12px;
 }
 
 .contact-name {
   font-weight: bold;
+  font-size: 16px;
+  color: #333;
 }
 
 .contact-last-message {
   color: #777;
-}
-
-.message-box {
-  flex-grow: 1;
+  font-size: 14px;
+  margin-top: 4px;
 }
 </style>

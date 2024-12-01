@@ -39,11 +39,11 @@
     <el-main>
       <el-pagination
           v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
+          v-model:page-size="currentPageSize"
           :page-sizes="pageSizes"
           :disabled="disabled"
           :background="background"
-          layout="prev, pager, next, sizes, jumper"
+          layout="total, sizes, prev, pager, next, jumper"
           :total="total"
           @size-change="handlePageSizeChange"
           @current-change="handlePageChange"
@@ -121,12 +121,10 @@
 import {ElAvatar, ElTag, ElIcon, ElPagination, ElMessage} from 'element-plus';
 import {ChatLineSquare} from "@element-plus/icons-vue";
 import myEditor from "../../components/Editor.vue";
-import router from "@/router";
 import {reactive, ref} from 'vue';
 import PostItem from "@/components/PostItem.vue";
 import {post, get} from '@/net';
 import {useStore} from "@/stores";
-import message from "@element-plus/icons/lib/Message.js";
 
 const store = useStore()
 
@@ -150,9 +148,9 @@ export default {
     const posts = ref([]);
     const currentPage = ref(1);
     const currentPageSize = ref(10);
-    const pageSize = ref(10);
+
     const pageSizes = [10, 20, 30, 40];
-    const total = ref(0);
+    const total = ref(10);
     const background = ref(true);
     const disabled = ref(false);
     let isNewTagVisible = ref(false);
@@ -167,7 +165,7 @@ export default {
     const fetchPosts = async (areaId = 0, pageNumber = 1) => {
       get(`/posts/get/post/${areaId}/${pageNumber}/${currentPageSize.value}`, (message, data) => {
             posts.value = data.records
-            total.value = data.postsTotal
+            total.value = data.total
           }
       )
     }
@@ -184,6 +182,7 @@ export default {
 
       const userId = store.auth.user.id;
 
+      //TODO 图片上传！！
       const requestData = {
         "userId": userId,
         "postTitle": form.postTitle,
@@ -270,15 +269,11 @@ export default {
         isNewTagVisible.value = false
         newTag.value = ''
       }
-
-
     }
 
 
     const createTag = () => {
-      //TODO 接口！！！！！！
       addTag(newTag.value)
-
       inputValue.value = '';
       isNewTagVisible.value = false;
       newTag.value = '';
@@ -299,7 +294,6 @@ export default {
       drawer,
       posts,
       currentPage,
-      pageSize,
       pageSizes,
       total,
       background,
@@ -309,6 +303,7 @@ export default {
       tagSuggestions,
       newTag,
       isNewTagVisible,
+      currentPageSize,
       handlePageSizeChange,
       handlePageChange,
       cancelForm,

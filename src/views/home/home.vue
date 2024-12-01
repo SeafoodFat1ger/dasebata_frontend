@@ -98,6 +98,9 @@
 <script>
 import {get} from "@/net/index.js";
 import {ArrowLeft, ArrowRight} from "@element-plus/icons-vue";
+import {useStore} from "@/stores/index.js";
+const store = useStore();
+const userId = store.auth.user.id;
 
 export default {
   components: {
@@ -128,19 +131,19 @@ export default {
     async fetchQuestions() {
       // 模拟获取最新提问数据
 
-      get(`/posts/get/post/0/1/10`, (message, data) => {
-        this.hotPosts = data.records;
+      get(`/posts/get/hot/post/all`, (message, data) => {
+        this.hotPosts = data.records.slice(0, 10);
       });
 
-      get(`/posts/get/problem/0/1/10`, (message, data) => {
-        this.hotQuestions = data.records;
+      get(`/posts/get/hot/problem/all`, (message, data) => {
+        this.hotQuestions = data.records.slice(0, 10);
       });
 
     },
 
     async fetchTopics() {
-      get(`/posts/getAllTags/1/10`, (message, data) => {
-        this.tags.push(...data.records);
+      get(`/posts/getAllTags/hot/${userId}`, (message, data) => {
+        this.tags.push(...data.records.slice(0, 10));
       });
     },
 

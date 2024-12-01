@@ -1,222 +1,363 @@
 <template>
-  <el-container>
-    <el-header>
-      <TopHeader />
-    </el-header>
-    <el-main>
-      <el-card class="post-card">
-        <!-- Header 部分：显示作者头像和帖子标题 -->
-        <template #header>
-          <el-container class="post-header">
-            <el-aside width="80px">
-              <!-- 左侧头像和作者名 -->
-              <div class="author-info">
-                <img :src="post.postAuthor.avatar" alt="用户头像" class="avatar" />
-                <div class="author-name">{{ post.postAuthor.name }}</div>
-              </div>
-            </el-aside>
-            <el-main>
-              <!-- 右侧帖子标题 -->
-              <div class="post-title">
-                <h2>{{ post.postTitle }}</h2>
-              </div>
-            </el-main>
-          </el-container>
-        </template>
+  <TopHeader/>
+  <div class="post-container">
+    <div class="post-details">
+      <!-- 帖子标题和作者信息 -->
+      <div class="post-header">
+        <img :src="postDetail.postAuthor.avatar" :alt="postDetail.postAuthor.name" class="avatar"/>
+        <div class="post-title">
+          <h2>{{ postDetail.postTitle }}</h2>
+          <p class="username">{{ postDetail?.postAuthor?.name }}</p>
+        </div>
+      </div>
 
-        <!-- 帖子内容部分 -->
-        <div class="post-content">
-          <div v-for="content in post.postContent" :key="content.data">
-            <p v-if="content.type === 'text'">{{ content.data }}</p>
-            <img v-if="content.type === 'image'" :src="content.data" alt="帖子图片" />
+      <!-- 灰色分割线 -->
+      <div class="divider"></div>
+
+      <!-- 帖子内容 -->
+      <div class="post-content">
+        <div v-for="content in postDetail.postContents" :key="content.data">
+          <div v-if="content.type === 'text'" v-html="content.data"></div>
+          <img v-if="content.type === 'image'" :src="content.data" alt="帖子图片"/>
+        </div>
+        <p class="post-date">{{ postDetail?.postPublishDate }}</p>
+      </div>
+
+      <!-- 点赞、收藏、回复按钮 -->
+      <div class="actions">
+        <button @click="likePost" class="action-button" :class="{'liked': postDetail.isLiked}">
+          <span class="icon">❤️</span> 点赞
+        </button>
+        <button @click="starPost" class="action-button" :class="{'bookmarked': postDetail.isBookmarked}">
+          <span class="icon">⭐️</span> 收藏
+        </button>
+        <button @click="openReplyDialog" class="action-button">
+          <span class="icon">✉️</span> 回复
+        </button>
+      </div>
+      <!-- 评论区 -->
+      <div class="comments">
+        <div v-for="(comment, index) in comments" :key="comment.cmtId"
+             :style="{ backgroundColor: getRandomColor(index) }"
+        >
+          <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"/>
+          <div class="comment-content">
+            <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
+            <p>{{ comment.cmtContent }}</p>
           </div>
         </div>
+      </div>
 
-        <template #footer>
-          <el-container style="display: flex; align-items: center; justify-content: space-between;">
-            <el-aside width="80%">
-              <!-- 左侧发布日期 -->
-              <div>{{ post.postPublishDate }}</div>
-            </el-aside>
-            <el-main>
-              <!-- 右侧信封图标和回复数量 -->
-              <div style="display: flex; align-items: center;">
-                <el-icon><message /></el-icon>
-                <span style="margin-left: 5px;"> {{ cmts.length }}</span>
-              </div>
-            </el-main>
-          </el-container>
-        </template>
-      </el-card>
-    </el-main>
-  </el-container>
-  <!-- 评论区域 -->
-  <el-container class="comments-container">
-    <div v-for="comment in cmts" :key="comment.id" class="comment-box">
-      <el-card>
-        <el-aside width="20%">
-          <!-- 评论者信息 -->
-          <div class="comment-author">
-            <img :src="comment.cmtAuthor.avatar" alt="评论者头像" class="avatar" />
-            <span class="author-name">{{ comment.cmtAuthor.name }}</span>
-            <span class="comment-date">{{ comment.cmtPublishDate }}</span>
-          </div>
-        </el-aside>
-        <!-- 评论内容 -->
-        <el-main>
-          <div class="comment-content">
-            {{ comment.cmtContent }}
-          </div>
-        </el-main>
-      </el-card>
+      <!-- 回复对话框 -->
+      <el-dialog title="回复" :visible.sync="showReplyDialog" width="30%">
+        <el-input type="textarea" v-model="replyContent" placeholder="输入回复内容"></el-input>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="closeReplyDialog">取消</el-button>
+          <el-button type="primary" @click="submitReply">提交</el-button>
+        </span>
+      </el-dialog>
     </div>
-  </el-container>
+  </div>
 </template>
 
 <script>
-
 import CommentBox from "@/components/CommentBox.vue";
 import TopHeader from "@/views/TopHeader.vue";
 import {Message} from "@element-plus/icons";
+import {post, get} from '@/net';
+import {ref} from "vue";
+import {ElMessage} from "element-plus";
+import {useRoute} from "vue-router";
+import 'element-plus/theme-chalk/el-icon.css';
+import {Star} from "@element-plus/icons-vue";
+import {useStore} from "@/stores/index.js"; // 引入图标样式
+
+const store = useStore();
 
 export default {
-  components: {Message, TopHeader, CommentBox},
-  data() {
-    return {
-      post: // 模拟存储帖子详情数据,实际从后端读取
-      {
-        postId: 5,
-        postTitle: "这是帖子标题",
-        postAuthor: {
-            avatar: "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
-            name: "小黑",
-        },
-        postPublishDate: "2099-09-20 22:54",
-        postTags: ["tag1", "tag2"],
-        postContent:[
-          {
-            type: "text",
-            data: "这是帖子的第一段文字内容。",
-          },
-          {
-            type: "image",
-            data: "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
-          },
-        ]
+  computed: {
+    Star() {
+      return Star
+    }
+  },
+  components: {
+    Message, Star,
+    TopHeader, CommentBox
+  },
+  setup() {
+    const route = useRoute(); // 使用 useRoute 钩子获取路由信息
+
+    const userId = store.auth.user.id;
+    const postId = route.params.id; // 获取帖子 ID
+    const postDetail = ref({
+      "postId": 29,
+      "postTitle": "",
+      "postAuthor": {
+        "avatar": "",
+        "name": ""
       },
-      cmts: [
-        {
-          cmtId: 1,
-          cmtContent: "这是评论1的内容",
-          cmtPublishDate: "2099-09-20 23:13",
-          cmtAuthor: {
-            avatar: "https://example.com/avatar1.png",
-            name: "Alice",
-          },
-        },
-        // {
-        //   cmtId: 2,
-        //   cmtContent: "这是评论2的内容",
-        //   cmtPublishDate: "2099-09-20 23:20",
-        //   cmtAuthor: {
-        //     avatar: "https://example.com/avatar2.png",
-        //     name: "Bob",
-        //   },
-        // },
+      "postPublishDate": "",
+      "postTags": [
+        ""
       ],
-    };
-  },
-  created() {
-    const postId = this.$route.params.id; // // 从路由参数中获取帖子 ID
-    //this.fetchPostDetails(postId); // 调用获取帖子详情
-  },
-  methods: {
-    async fetchPostDetails(id) {
-      try { // 从后台 API 获取帖子数据
-        const response = await axios.get(`/api/posts/${id}`);
-        this.post = response.data;
-      } catch (error) {
-        console.error("获取帖子详情失败：", error); // 处理错误，如显示错误信息
+      "postCommentNum": 0,
+      "postLikeNum": 1,
+      "postBookmarkNum": 0,
+      "isLiked": true,
+      "isBookmarked": false,
+      "postContents": [
+        {
+          "type": "text",
+          "data": ""
+        },
+        {
+          "type": "image",
+          "data": ""
+        }]
+    });
+    const colors = [
+      '#fce4ec', // 颜色1
+      '#e3f2fd', // 颜色2
+      '#e8f5e9', // 颜色3
+      '#fffde7', // 颜色4
+      '#f3e5f5', // 颜色5
+      '#f0f4c3', // 颜色6
+      '#ffe0b2', // 颜色7
+    ];
+    const comments = [
+      {
+        cmtId: 2,
+        cmtContent: "这是评论2的内容",
+        cmtPublishDate: "2099-09-20 23:20",
+        cmtAuthor: {
+          avatar: "https://example.com/avatar2.png",
+          name: "Bob",
+        },
+      }, {
+        cmtId: 4,
+        cmtContent: "这是评论2的内容",
+        cmtPublishDate: "2099-09-20 23:20",
+        cmtAuthor: {
+          avatar: "https://example.com/avatar2.png",
+          name: "Bob",
+        },
       }
-    },
-  },
+    ];
+
+    const getRandomColor = (index) => {
+      return colors[index % colors.length];
+    };
+
+    const fetchPostDetail = async (postId) => {
+      get(`/posts/getID/${postId}/${userId}`, onSuccess);
+    }
+
+    const onSuccess = (message, data) => {
+      postDetail.value = data;           // 存储帖子数据
+      comments.value = data.comments; // 存储评论数据
+    }
+
+    fetchPostDetail(postId);
+
+    const likePost = () => {
+      const likeData = {
+        postId: postId,
+        userId: userId,
+      };
+      postDetail.value.isLiked = !postDetail.value.isLiked;
+      if (postDetail.value.isLiked) {
+        post(`/likes/add`, likeData, (message, data) => {
+          ElMessage.success("点赞成功");
+        });
+      } else {
+        post(`/likes/cancel`, likeData, (message, data) => {
+          ElMessage.success("取消成功");
+        });
+      }
+    };
+
+    const starPost = () => {
+      const likeData = {
+        postId: postId,
+        userId: userId,
+      };
+      // 切换收藏状态
+      postDetail.value.isBookmarked = !postDetail.value.isBookmarked;
+      if (postDetail.value.isBookmarked) {
+        post(`/bookmarks/add`, likeData, (message, data) => {
+          ElMessage.success("收藏成功");
+        });
+      } else {
+        post(`/bookmarks/cancel`, likeData, (message, data) => {
+          ElMessage.success("取消成功");
+        });
+      }
+    };
+
+    /****** 关于回复框 ********/
+    let showReplyDialog = ref(false);
+    let replyContent = ref("");
+
+    const openReplyDialog = () => {
+      showReplyDialog.value = true;
+    };
+
+    const closeReplyDialog = () => {
+      showReplyDialog.value = false;
+      replyContent.value = ""; // 清空输入框内容
+    };
+
+    const submitReply = () => {
+      if (replyContent.value.trim() === "") {
+        ElMessage.warning("回复内容不能为空");
+        return;
+      }
+      // 执行回复逻辑，如发送请求
+      console.log("回复内容:", replyContent.value);
+
+      ElMessage.success("回复成功");
+      closeReplyDialog();
+    };
+
+    return {
+      postId, postDetail, comments,
+      fetchPostDetail,
+      likePost, starPost,
+      showReplyDialog, replyContent, openReplyDialog, closeReplyDialog, submitReply,
+      getRandomColor,
+    }
+  }
 };
 </script>
 
-
 <style scoped>
-.post-header {
-  padding: 0; /* 删除不必要的 padding */
-  height: auto; /* 设置高度为自动调整 */
-}
-
-.post-card {
-  width: 90%; /* 设置卡片宽度为父容器的 60% */
-  max-width: 1000px; /* 设置最大宽度，防止卡片在大屏幕上过宽 */
-  //margin: 20px auto; /* 设置垂直和水平居中 */
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); /* 添加卡片阴影 */
-  border-radius: 14px; /* 设置圆角，值越大圆角越明显 */
-}
-
-.author-info {
+.post-container {
   display: flex;
-  flex-direction: column;
+  justify-content: center; /* 居中对齐 */
+  padding: 20px; /* 上下左右留白 */
+}
+
+.post-details {
+  max-width: 800px; /* 设置最大宽度，避免内容过宽 */
+  width: 100%;
+  border: 1px solid #ddd;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.post-header {
+  display: flex;
   align-items: center;
-  padding: 20px;
+  background-color: #e0f7fa;
+  padding: 16px;
+  border-radius: 8px;
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  margin-bottom: 10px;
-}
-
-.author-name {
-  font-size: 8px;
+  margin-right: 16px;
 }
 
 .post-title {
+  flex: 1;
+  font-size: 20px;
+}
+
+.username {
+  font-size: 14px;
+  color: #555;
+}
+
+.divider {
+  height: 1px;
+  background-color: #ccc;
+  margin: 16px 0;
+}
+
+.post-content p {
+  margin: 8px 0;
+}
+
+.post-date {
+  text-align: right;
+  font-size: 12px;
+  color: #888;
+  margin-top: 16px;
+}
+
+.actions {
   display: flex;
-  //justify-content: center;
-  align-items: center;
-  font-size: 16px;
-  font-weight: bold;
-  padding-left: 0px; /* 适当缩小标题与头像的间距 */
+  gap: 12px;
+  margin-top: 16px;
 }
 
-.comments-container {
-  margin-top: 40px;
-}
-
-.comment-box {
-  width: 90%; /* 设置卡片宽度为父容器的 60% */
-  margin-bottom: 20px;
-}
-
-.comment-author {
+.action-button {
   display: flex;
   align-items: center;
-  flex-direction: column;
+  padding: 8px 16px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.comment-author .avatar {
+
+.liked {
+  background-color: #ff6666; /* 点赞按钮被点赞时的深色背景 */
+}
+
+
+.bookmarked {
+  background-color: #66ccff; /* 收藏按钮被收藏时的深色背景 */
+}
+
+
+.icon {
+  margin-right: 6px;
+}
+
+.comments {
+  margin-top: 20px;
+}
+
+.comment {
+  display: flex;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.comment-even {
+  background-color: #fce4ec;
+}
+
+.comment-1 {
+  background-color: #e8f5e9;
+}
+
+.comment-1 {
+  background-color: #e8f5e9;
+}
+
+.comment-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   margin-right: 10px;
 }
 
-.comment-author .author-name {
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.comment-date {
-  color: gray;
-}
-
 .comment-content {
-  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-author {
+  font-weight: bold;
 }
 </style>
+
+

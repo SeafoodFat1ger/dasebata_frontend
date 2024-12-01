@@ -59,25 +59,29 @@ const router = createRouter({ // 创建路由实例
                 //   component: () => import('../views/home/postDetail.vue')
                 // },
                 {
-                    path: 'profile',
+                    path: 'profile/:userId',
                     name: 'profile',
                     component: () => import('../views/home/profile.vue'),
                     children: [
                         {
                             path: 'likes',
                             name: 'likes',
+                            props: true,
                             component: () => import('../views/profile/likes.vue')
                         }, {
                             path: 'stars',
                             name: 'stars',
+                            props: true,
                             component: () => import('../views/profile/stars.vue')
                         }, {
                             path: 'activity',
                             name: 'activity',
-                            component: () => import('../views/profile/activity.vue')
+                            component: () => import('../views/profile/activity.vue'),
+                            props: true
                         }, {
                             path: 'guan',
                             name: 'guan',
+                            props: true,
                             component: () => import('../views/profile/guan.vue')
                         }
                     ]
