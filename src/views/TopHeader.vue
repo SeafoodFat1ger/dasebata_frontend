@@ -8,12 +8,21 @@
       </div>
       <!-- 搜索框 -->
       <div class="content-search">
-        <el-input :prefix-icon="Search"></el-input>
+        <el-input
+            v-model="searchQuery"
+            :prefix-icon="Search"
+            placeholder="搜索帖子、问题或用户"
+        >
+          <template #append>
+            <el-button @click="onSearch">搜索</el-button>
+          </template>
+        </el-input>
       </div>
+
 
       <!-- 响应式菜单栏 -->
       <div v-if="!isSmallScreen" class="content-menu">
-        <el-menu  mode="horizontal" :ellipsis="false" router>
+        <el-menu mode="horizontal" :ellipsis="false" router>
           <el-menu-item index="/home/home">
             <el-icon>
               <House/>
@@ -95,7 +104,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount} from 'vue';
+import {ref, onMounted, onBeforeUnmount, watch} from 'vue';
 import {ElMessage} from "element-plus";
 import router from "@/router";
 import {
@@ -109,6 +118,7 @@ import {
   SwitchButton,
 } from "@element-plus/icons-vue";
 import {useStore} from "@/stores/index.js";
+import {get} from "@/net/index.js"
 
 const store = useStore();
 const avatar = store.auth.user.avatar;
@@ -119,6 +129,27 @@ const isSmallScreen = ref(false);
 const handleCommand = async (command) => {
   await router.push(command);
 }
+
+const searchQuery = ref(""); // 搜索框的值
+
+
+// 监听搜索框输入，限制长度为15
+watch(searchQuery, (newValue) => {
+  if (newValue.trim().length > 15) {
+    searchQuery.value = newValue.slice(0, 15); // 如果超过15个字符，截取前15个
+    ElMessage.warning('搜索内容不能超过15个字符')
+  }
+});
+
+// 跳转到搜索页面
+const onSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({ name: 'search', query: { query: searchQuery.value.trim() } });
+  } else {
+    ElMessage.warning('搜索内容不能为空');
+  }
+};
+
 
 // 点击 "北航BBS" 时跳转到首页
 const gotoHome = async () => {
@@ -202,6 +233,7 @@ const goProfile = () => {
     display: none;
   }
 }
+
 .avatar {
   width: 50px;
   height: 50px;

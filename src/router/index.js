@@ -27,6 +27,11 @@ const router = createRouter({ // 创建路由实例
             component: () => import('../views/TopHeader.vue'),
             children: [
                 {
+                    path: 'search',
+                    name: 'search',
+                    component: () => import('../views/searchPage.vue'),
+                },
+                {
                     path: 'home',
                     name: 'homee',
                     component: () => import('../views/home/home.vue'),
