@@ -6,8 +6,8 @@
     </div>
     <div class="welcome-title">
       <div style="font-size: 30px;font-weight: bold">欢迎来到我们的论坛</div>
-      <div style="margin-top: 10px">abcdef</div>
-      <div style="margin-top: 5px">abcdefabcdefabcdef</div>
+      <div style="margin-top: 10px">这是数据库大作业</div>
+      <div style="margin-top: 5px">更是我们的自由之地</div>
     </div>
     <!--右侧：根据路由展示登录/注册/忘记密码组件-->
     <div style="width: 450px;text-align: center;background-color: white;z-index: 1">

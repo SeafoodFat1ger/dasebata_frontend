@@ -29,11 +29,7 @@
     <el-card class="card content-card">
 
       <el-tabs v-model="activeTab" class="tabs">
-        <el-select v-model="sortOrder" placeholder="排序方式" size="small" class="sort-select">
-          <el-option label="按更新时间" value="updated"></el-option>
-          <el-option label="按回答数" value="answers"></el-option>
-        </el-select>
-        <!--TODO-->
+
         <el-tab-pane label="帖子" name="articles">
           <div class="post-list" @scroll="onScroll" ref="postList">
             <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="false"/>
@@ -124,16 +120,6 @@ export default {
     const totalPosts = ref(0);
     const loadingPost = ref(false);  // 用于控制是否正在加载
     const loadingProblem = ref(false);
-
-    const sortedQuestions = computed(() => {
-      if (sortOrder.value === "updated") {
-        return [...questions.value].sort((a, b) => new Date(b.updated) - new Date(a.updated));
-      }
-      if (sortOrder.value === "answers") {
-        return [...questions.value].sort((a, b) => b.answers - a.answers);
-      }
-      return questions.value;
-    });
 
     const fetchPosts = async (pageNumber = 1) => {
       if (loadingPost.value) return;  // 如果正在加载，直接返回
@@ -242,7 +228,6 @@ export default {
       totalQuestions,
       totalPosts,
       sortOrder,
-      sortedQuestions,
       onScroll,
       cancelForm,
       submitPost,

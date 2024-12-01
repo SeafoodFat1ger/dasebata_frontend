@@ -6,6 +6,31 @@
       <div v-if="!isSmallScreen" class="content-aside-topShow-logoAndName" @click="gotoHome">
         北航BBS
       </div>
+
+      <div v-if="isSmallScreen">
+        <el-menu :default-active="router.currentRoute.value.path" mode="horizontal" :ellipsis="false" router>
+          <el-sub-menu index="/abc">
+            <el-menu-item index="/home/home">
+              <span>首页热榜</span>
+            </el-menu-item>
+            <el-menu-item index="/home/posts">
+              <span>帖子列表</span>
+            </el-menu-item>
+            <el-menu-item index="/home/posts">
+              <span>问题列表</span>
+            </el-menu-item>
+            <el-menu-item index="/home/tags">
+              <span>话题广场</span>
+            </el-menu-item>
+            <el-menu-item index="/home/chats">
+              <span>消息列表</span>
+            </el-menu-item>
+          </el-sub-menu>
+        </el-menu>
+
+      </div>
+
+
       <!-- 搜索框 -->
       <div class="content-search">
         <el-input
@@ -55,28 +80,7 @@
           </el-menu-item>
         </el-menu>
       </div>
-      <div v-if="isSmallScreen">
-        <el-menu :default-active="router.currentRoute.value.path" mode="horizontal" :ellipsis="false" router>
-          <el-sub-menu index="/abc">
-            <el-menu-item index="/home/home">
-              <span>首页热榜</span>
-            </el-menu-item>
-            <el-menu-item index="/home/posts">
-              <span>帖子列表</span>
-            </el-menu-item>
-            <el-menu-item index="/home/posts">
-              <span>问题列表</span>
-            </el-menu-item>
-            <el-menu-item index="/home/tags">
-              <span>话题广场</span>
-            </el-menu-item>
-            <el-menu-item index="/home/chats">
-              <span>消息列表</span>
-            </el-menu-item>
-          </el-sub-menu>
-        </el-menu>
 
-      </div>
 
       <!-- 用户信息，在小屏幕上隐藏 -->
       <div v-if="!isSmallScreen" class="user-info">
