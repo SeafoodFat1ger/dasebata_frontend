@@ -226,7 +226,7 @@ export default {
             id: myuser.id,
             username: form.username,
             email: form.email,
-            password: "123456",
+            password: form.password,
             profile: form.profile,
             avatar: form.avatar,
           },
