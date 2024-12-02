@@ -3,13 +3,16 @@
     <div class="main_content_header">{{ user.username }}</div>
     <div class="main_content_center">
       <el-scrollbar class="faultExpertConsultation_scrollbar" ref="scrollbarRef" @scroll="onScroll">
+        <!-- 查看更多历史记录按钮 -->
+        <div v-if="showLoadMore" class="load-more-btn">
+          <el-button @click="loadMoreHistory" type="text" size="small">查看更多历史记录</el-button>
+        </div>
+
         <!-- 对话内容 -->
         <div v-for="(item, index) in messagesWithTimestamps" :key="index">
-          <!-- 对话时间 -->
           <div v-if="item.showTime" class="chat_time">
             {{ formatSendTime(item.timestamp) }}
           </div>
-          <!-- 判断是提问还是回答 -->
           <div v-if="item.from === '我'" class="question chat">
             <div class="chat_question chat_common">
               <span>{{ item.message }}</span>
@@ -53,9 +56,10 @@ let userId = route.params.userId; // 当前用户ID
 const user = ref({});
 
 const currentPage = ref(1); // 当前页
-const pageSize = ref(20);   // 每页消息条数
+const pageSize = ref(10);   // 每页消息条数
 const totalMessages = ref(0); // 总消息数
 const loadingMessages = ref(false); // 防止重复加载消息
+const showLoadMore = ref(false); // 是否显示"查看更多历史记录"按钮
 
 const myuser = store.auth.user; // 当前登录用户
 
@@ -73,6 +77,9 @@ const fetchHistoryMessages = () => {
     totalMessages.value = data.total; // 总消息数
     if (data.records && data.records.length > 0) {
       chatList.value = [...data.records.map(formatMessage), ...chatList.value]; // 在顶部加载新数据
+    }
+    if (data.total <= chatList.value.length) {
+      showLoadMore.value = false;
     }
     loadingMessages.value = false; // 加载完成
   });
@@ -116,11 +123,18 @@ const askClick = (val) => {
 
 const onScroll = () => {
   const scrollbar = scrollbarRef.value.wrapRef;
-  if (scrollbar.scrollTop === 0 && chatList.value.length < totalMessages.value) {
-    currentPage.value++; // 增加页码
-    fetchHistoryMessages(); // 加载更多聊天记录
+  if (scrollbar.scrollTop < 100 && chatList.value.length < totalMessages.value) {
+    showLoadMore.value = true;  // 滚动到顶部时显示"查看更多历史记录"按钮
+  } else {
+    showLoadMore.value = false; // 滚动到底部时隐藏按钮
   }
 };
+
+const loadMoreHistory = () => {
+  currentPage.value++; // 增加页码
+  fetchHistoryMessages(); // 加载更多聊天记录
+};
+
 let intervalId = null; // 页面加载时初始化历史消息
 
 onMounted(() => {
@@ -128,12 +142,12 @@ onMounted(() => {
   currentPage.value = 1; // 重置页码为 1
   fetchUser();
   fetchHistoryMessages(); // 加载初始历史消息
-  // 设置定时器，每60秒（或你希望的时间）刷新聊天记录
   intervalId = setInterval(() => {
     chatList.value = []; // 清空历史记录
     currentPage.value = 1; // 重置页码为 1
     fetchHistoryMessages(); // 定时刷新聊天记录
-  }, 6000); // 60秒
+  }, 60000); // 60秒
+  scrollToBottom();
 });
 
 // 格式化时间显示
@@ -162,6 +176,14 @@ const formatTime = (date) => {
   return `${hours}:${minutes}`;
 };
 
+// 滚动到底部的方法
+const scrollToBottom = () => {
+  const scrollbar = scrollbarRef.value.wrapRef;
+  if (scrollbar) {
+    scrollbar.scrollTop = scrollbar.scrollHeight;
+  }
+};
+
 watch(
     () => route.params.userId,  // 监听路由参数变化
     (newUserId) => {
@@ -178,7 +200,6 @@ onBeforeUnmount(() => {
   if (intervalId) {
     clearInterval(intervalId);
   }
-  // 清理任何可能的定时器或其他资源
 });
 </script>
 
@@ -187,6 +208,11 @@ onBeforeUnmount(() => {
   border: none;
   outline: none;
   resize: none;
+}
+
+.load-more-btn {
+  text-align: center;
+  margin: 10px 0;
 }
 </style>
 
@@ -208,12 +234,12 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 26px;
 }
 
 .main_content_center {
   width: 100%;
-  height: calc(100% - 170px);
+  height: 70%;
   margin: 10px 0;
   overflow-y: auto;
   padding-right: 10px;
@@ -222,7 +248,7 @@ onBeforeUnmount(() => {
 .chat_time {
   display: flex;
   justify-content: center;
-  font-size: 10px;
+  font-size: 20px;
 }
 
 .question {
@@ -271,9 +297,10 @@ onBeforeUnmount(() => {
 
 .input_box {
   width: 100%;
-  height: 60px;
+  height: 60%;
 
   .chat-input {
+    font-size: 28px;
     width: 100%;
     padding: 10px;
     margin: auto;
@@ -283,7 +310,7 @@ onBeforeUnmount(() => {
 
 .btn_box {
   width: 100%;
-  height: 40px;
+  height: 40%;
   display: flex;
   justify-content: flex-end;
   align-items: center;

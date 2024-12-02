@@ -23,10 +23,10 @@
 </template>
 
 <script>
-import {get, post} from "@/net/index.js";
-import {Star} from "@element-plus/icons-vue";
-import {useStore} from "@/stores";
-import {ElMessage} from "element-plus";
+import { get, post } from "@/net/index.js";
+import { Star } from "@element-plus/icons-vue";
+import { useStore } from "@/stores";
+import { ElMessage } from "element-plus";
 
 const store = useStore();
 const userId = store.auth.user.id;
@@ -40,13 +40,14 @@ export default {
     return {
       tags: [], // 存储所有加载的主题数据
       currentPage: 1, // 当前加载的页码
-      pageSize: 10, // 每页加载的记录数
+      pageSize: 30, // 每页加载的记录数
       total: 0, // 记录总数
       loading: false, // 是否正在加载
       finished: false // 是否加载完成
     };
   },
   methods: {
+    // 获取数据方法
     async fetchTopics() {
       if (this.loading || this.finished) return;
 
@@ -54,7 +55,7 @@ export default {
 
       get(`/posts/getAllTags/${userId}/${this.currentPage}/${this.pageSize}`, (message, data) => {
         this.tags.push(...data.records); // 将新数据追加到现有数组
-        this.total = data.postsTotal;
+        this.total = data.total;
 
         // 判断是否已经加载完所有数据
         if (this.tags.length >= this.total) {
@@ -72,9 +73,13 @@ export default {
         this.fetchTopics(); // 触发加载更多数据
       }
     },
+
+    // 跳转到标签详情页
     navigateToTag(tagName) {
       this.$router.push(`/home/tagDetail/${tagName}`);
     },
+
+    // 切换收藏状态
     toggleFavorite(tag) {
       tag.isFocus = !tag.isFocus; // 切换收藏状态
       if (tag.isFocus) {
@@ -106,14 +111,14 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .card-container {
   padding: 60px;
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 固定为一行五列 */
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
   overflow-y: auto;
-  max-height: 80vh;
+  max-height: 80vh; /* 设置最大高度，确保容器可以滚动 */
   position: relative;
 }
 
@@ -175,7 +180,6 @@ export default {
   color: #409eff;
 }
 
-/* 深色背景和文字的收藏按钮 */
 .favorite-btn.focused {
   background-color: #409eff; /* 深色背景 */
   color: #fff; /* 白色文字 */
@@ -183,7 +187,7 @@ export default {
 
 .loading,
 .finished {
-  grid-column: span 5; /* 在所有卡片下面 */
+  grid-column: span 5;
   text-align: center;
   font-size: 16px;
   color: #999;
