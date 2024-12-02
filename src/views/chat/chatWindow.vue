@@ -1,11 +1,10 @@
 <template>
-
   <div class="el_main_content">
     <div class="main_content_header">{{ user.username }}</div>
     <div class="main_content_center">
-      <el-scrollbar class="faultExpertConsultation_scrollbar" ref="scrollbarRef">
+      <el-scrollbar class="faultExpertConsultation_scrollbar" ref="scrollbarRef" @scroll="onScroll">
         <!-- 对话内容 -->
-        <div v-for="(item, index) in messagesWithTimestamps" :key="index" v-show="messagesWithTimestamps.length > 0">
+        <div v-for="(item, index) in messagesWithTimestamps" :key="index">
           <!-- 对话时间 -->
           <div v-if="item.showTime" class="chat_time">
             {{ formatSendTime(item.timestamp) }}
@@ -35,55 +34,58 @@
       </div>
     </div>
   </div>
-
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount, nextTick, computed, watch} from "vue";
+import {ref, onMounted, onBeforeUnmount, computed, watch} from "vue";
 import {ElMessage} from "element-plus";
-import axios from "axios";
-import {useRoute} from "vue-router";
 import {get, post} from "@/net/index.js";
+import {useRoute} from "vue-router";
 import {useStore} from "@/stores/index.js";
-import message from "@element-plus/icons/lib/Message.js";
 
 const question = ref(""); // 输入框值
-const chatList = ref([]); // 循环的聊天数组
+const chatList = ref([]); // 聊天记录数组
 const scrollbarRef = ref(null);
 
 const store = useStore();
 const route = useRoute();
-let userId = route.params.userId; // 获取当前用户的ID
+let userId = route.params.userId; // 当前用户ID
 const user = ref({});
 
-// 获取用户信息
+const currentPage = ref(1); // 当前页
+const pageSize = ref(20);   // 每页消息条数
+const totalMessages = ref(0); // 总消息数
+const loadingMessages = ref(false); // 防止重复加载消息
+
+const myuser = store.auth.user; // 当前登录用户
+
 const fetchUser = () => {
   get(`/users/get/${userId}`, (message, data) => {
     user.value = data;
   });
 };
 
-fetchUser();
+const fetchHistoryMessages = () => {
+  if (loadingMessages.value) return; // 如果当前正在加载消息，直接返回
+  loadingMessages.value = true;
 
+  get(`/chats/getChats/${userId}/${myuser.id}/${currentPage.value}/${pageSize.value}`, (message, data) => {
+    totalMessages.value = data.total; // 总消息数
+    if (data.records && data.records.length > 0) {
+      chatList.value = [...data.records.map(formatMessage), ...chatList.value]; // 在顶部加载新数据
+    }
+    loadingMessages.value = false; // 加载完成
+  });
+};
 
-const myuser = store.auth.user; // 获取当前登录的用户
+const formatMessage = (item) => ({
+  message: item.message,
+  timestamp: item.createdAt,
+  from: item.fromId === myuser.id ? '我' : '他',
+  to: item.toId === myuser.id ? '我' : '他',
+  showTime: false,
+});
 
-// 获取历史消息
-const fetchHistoryMessages = async () => {
-
-  get(`/chats/getChats/${userId}/${myuser.id}`, (message, data) => {
-        chatList.value = data.map(item => ({
-          message: item.message,
-          timestamp: item.createdAt,
-          from: item.fromId === myuser.id ? '我' : '他', // 根据 fromId 判断发信人
-          to: item.toId === myuser.id ? '我' : '他',     // 根据 toId 判断收信人
-          showTime: false,  // 默认不显示时间
-        }));
-      }
-  )
-}
-
-// 创建新的对话数组，加上属性showTime
 const messagesWithTimestamps = computed(() => {
   return chatList.value.map((item, index) => ({
     ...item,
@@ -91,132 +93,96 @@ const messagesWithTimestamps = computed(() => {
   }));
 });
 
-// 计算两次会话时间是否超过3分钟
 const shouldShowTime = (index) => {
+  if (index === 0) return true;
   const current = new Date(chatList.value[index - 1].timestamp);
   const next = new Date(chatList.value[index].timestamp);
-  const diff = next ? next - current : 0;
-  return diff > 3 * 60 * 1000; // 如果间隔超过3分钟返回true
+  return next - current > 3 * 60 * 1000;
 };
 
-// 提问方法
-const askClick = async (val) => {
+const askClick = (val) => {
   if (val !== "") {
-
-    //TODO 这个接口有问题
     post(`/chats/add`, {
-          message: val,
-          fromId: myuser.id, // 当前登录用户的ID
-          toId: userId,
-        },
-        (message, data) => {
-          question.value = ""; // 清空输入框
-        }
-    )
-
+      message: val,
+      fromId: myuser.id,
+      toId: userId,
+    }, (message, data) => {
+      question.value = ""; // 发送后清空输入框
+    });
   } else {
     ElMessage("不能发送空白消息");
   }
 };
 
-// 滚动事件到底部事件
-const scrollToBottom = () => {
-  nextTick(() => {
-    let chat = document.querySelector(".main_content_center");
-    scrollbarRef.value.wrapRef.scrollTop = chat.scrollHeight;
-  });
+const onScroll = () => {
+  const scrollbar = scrollbarRef.value.wrapRef;
+  if (scrollbar.scrollTop === 0 && chatList.value.length < totalMessages.value) {
+    currentPage.value++; // 增加页码
+    fetchHistoryMessages(); // 加载更多聊天记录
+  }
 };
+let intervalId = null; // 页面加载时初始化历史消息
 
-// 监听聊天记录变化，自动滚动到底部
-watch(
-    chatList.value,
-    (newVal, oldVal) => {
-      scrollToBottom();
-    },
-    {immediate: true}
-);
+onMounted(() => {
+  chatList.value = []; // 清空历史记录
+  currentPage.value = 1; // 重置页码为 1
+  fetchUser();
+  fetchHistoryMessages(); // 加载初始历史消息
+  // 设置定时器，每60秒（或你希望的时间）刷新聊天记录
+  intervalId = setInterval(() => {
+    chatList.value = []; // 清空历史记录
+    currentPage.value = 1; // 重置页码为 1
+    fetchHistoryMessages(); // 定时刷新聊天记录
+  }, 6000); // 60秒
+});
 
-
-watch(
-    () => route.params.userId,  // 监听路由参数的变化
-    (newUserId) => {
-      userId = newUserId;  // 更新 userId
-      fetchUser();  // 重新获取用户信息
-      fetchHistoryMessages();  // 重新获取历史消息
-    },
-    {immediate: true}
-);
-
-
-// 格式化时间
+// 格式化时间显示
 const formatSendTime = (sendTime) => {
   const now = new Date();
   const sendDate = new Date(sendTime);
-
-  if (isNaN(sendDate)) {
-    console.error("Invalid date:", sendTime);
-    return "Invalid time";
-  }
-
   const timeDiff = now - sendDate;
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startOfTargetDate = new Date(sendDate.getFullYear(), sendDate.getMonth(), sendDate.getDate());
   const oneDay = 24 * 60 * 60 * 1000;
 
-  if (startOfToday.getTime() === startOfTargetDate.getTime()) {
-    return formatTime(sendDate);
-  }
-
   if (timeDiff < oneDay) {
-    return "昨天 " + formatTime(sendDate);
+    return `今天 ${formatTime(sendDate)}`;
+  } else if (timeDiff < 7 * oneDay) {
+    return `昨天 ${formatTime(sendDate)}`;
+  } else {
+    return sendDate.toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }) + " " + formatTime(sendDate);
   }
-
-  if (timeDiff < 7 * oneDay) {
-    const weekday = getWeekday(sendDate);
-    return weekday + " " + formatTime(sendDate);
-  }
-
-  return (
-      sendDate.toLocaleDateString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }) + " " + formatTime(sendDate)
-  );
 };
 
 const formatTime = (date) => {
   const hours = date.getHours().toString().padStart(2, "0");
   const minutes = date.getMinutes().toString().padStart(2, "0");
-  return hours + ":" + minutes;
+  return `${hours}:${minutes}`;
 };
 
-const getWeekday = (date) => {
-  const weekdays = [
-    "星期天", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六",
-  ];
-  return weekdays[date.getDay()];
-};
+watch(
+    () => route.params.userId,  // 监听路由参数变化
+    (newUserId) => {
+      userId = newUserId;  // 更新 userId
+      fetchUser();  // 重新获取用户信息
+      currentPage.value = 1; // 重置分页页码
+      chatList.value = []
+      fetchHistoryMessages()
+    },
+    {immediate: true}
+);
 
-// 页面加载时初始化历史消息，并启动定时获取历史消息
-let intervalId = null;
-
-onMounted(() => {
-  fetchHistoryMessages();  // 页面加载时获取一次历史消息
-
-  // 设置每5秒获取一次历史消息
-  intervalId = setInterval(fetchHistoryMessages, 5000000);
-});
-
-// 在组件销毁时清除定时器
 onBeforeUnmount(() => {
   if (intervalId) {
     clearInterval(intervalId);
   }
+  // 清理任何可能的定时器或其他资源
 });
 </script>
 
-<style>
+<style scoped>
 .no-border {
   border: none;
   outline: none;
@@ -289,7 +255,6 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-
 .me {
   font-size: 16px;
   color: #ffffff;
@@ -327,7 +292,6 @@ onBeforeUnmount(() => {
 .faultExpertConsultation_scrollbar {
   max-height: calc(100vh - 220px);
 }
-
 
 .avatar {
   background-color: #409eff;
