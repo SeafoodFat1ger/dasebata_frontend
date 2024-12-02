@@ -9,7 +9,8 @@
         <div class="last-login">
           最后一次登录时间：{{ formatLastLogin(user.lastLogin) }}
         </div>
-        <el-button v-if="userId == myuser.id" type="primary" class="edit-button" @click="editProfile">编辑个人资料</el-button>
+        <el-button v-if="userId == myuser.id" type="primary" class="edit-button" @click="editProfile">编辑个人资料
+        </el-button>
         <el-button v-if="userId != myuser.id" type="primary" class="edit-button" @click="gotoChat">去私信</el-button>
 
       </div>
@@ -37,21 +38,56 @@
     </el-menu>
 
     <el-dialog title="编辑个人资料" v-model="dialogVisible" width="600px">
-      <el-form :model="form" ref="form" label-width="80px">
+      <el-form :model="form" label-width="80px">
         <el-form-item label="用户名">
-          <el-input v-model="form.username" placeholder="请输入用户名"></el-input>
+          <el-input v-model="form.username"  type="text" placeholder="请输入用户名"></el-input>
         </el-form-item>
-        <el-form-item label="昵称">
-          <el-input v-model="form.nickname" placeholder="请输入昵称"></el-input>
+        <el-form-item label="邮箱">
+          <el-input v-model="form.email" type="text"  placeholder="请输入邮箱"></el-input>
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="form.profile" type="text"  placeholder="请输入简介"></el-input>
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="form.password" type="password"  placeholder="请输入密码"></el-input>
         </el-form-item>
         <el-form-item label="头像">
-
+          <el-upload
+              list-type="picture-card"
+              :action="'http://47.93.187.154:8082/posts/uploadImg'"
+              :on-change="handleChange"
+              :before-remove="beforeRemove"
+              :on-preview="handlePictureCardPreview"
+              :file-list="fileList.front_file"
+              multiple
+              :limit="1"
+              :on-exceed="handleExceed"
+              :before-upload="beforeUpload"
+              name="img"
+          >
+          </el-upload>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="saveProfile">保存</el-button>
       </div>
+    </el-dialog>
+
+    <!-- 预览图片的弹窗 -->
+    <el-dialog
+        v-model="previewDialogVisible"
+        :visible.sync="previewDialogVisible"
+        :title="previewTitle"
+        :width="'50%'"
+        :before-close="handleClosePreview"
+    >
+      <img
+          v-if="previewImage"
+          :src="previewImage"
+          alt="Preview Image"
+          class="preview-image"
+      />
     </el-dialog>
 
     <!-- 页面内容 -->
@@ -63,10 +99,12 @@
 
 <script>
 import {useStore} from "@/stores";
-import {ref} from "vue";
+import {reactive, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {get} from "@/net/index.js";
-import {ElMessage} from "element-plus";
+import {get, post} from "@/net/index.js";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {Plus} from '@element-plus/icons-vue'
+import message from "@element-plus/icons/lib/Message.js";
 import router from "@/router/index.js";
 
 const store = useStore();
@@ -78,7 +116,72 @@ export default {
     const fetchUser = () => {
       get(`/users/get/${userId}`, (message, data) => {
         user.value = data;
+        form.username = data.username;
+        form.email = data.email;
+        form.avatar = data.avatar;
+        form.profile = data.profile;
       });
+    };
+
+    // 上传图片
+    const fileList = ref([]);
+    const handleChange = file => {
+      if (file.status == "success") {
+        fileList.value = [];
+        fileList.value.push(file.response);
+        form.avatar = file.response.data;
+      }
+    };
+    // 删除
+    const beforeRemove = () => {
+      const result = new Promise((resolve, reject) => {
+        ElMessageBox.confirm("此操作将删除该图片, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+            .then(() => {
+              resolve();
+              form.avatar = myuser.avatar
+            })
+            .catch(() => {
+              reject(false);
+            });
+      });
+      return result;
+    };
+
+    const handleExceed = () => {
+      ElMessage("只能上传一张");
+    }
+
+    const previewDialogVisible = ref(false);  // 控制预览弹窗显示
+    const previewImage = ref('');  // 存储预览的图片
+    const previewTitle = ref('图片预览');  // 预览图片的标题
+
+    const handlePictureCardPreview = (file) => {
+      // 获取点击的图片，并设置为预览图片
+      previewImage.value = file.url || URL.createObjectURL(file.raw);
+      previewDialogVisible.value = true; // 打开图片预览弹窗
+    };
+    const handleClosePreview = () => {
+      previewDialogVisible.value = false;
+    };
+
+    const beforeUpload = (file) => {
+      const isJpgOrPng = ['image/jpeg', 'image/png'].includes(file.type);
+      const isLt2M = file.size / 1024 / 1024 < 2; // 限制文件大小为 2MB
+
+      if (!isJpgOrPng) {
+        ElMessage.error('上传头像图片只能是 JPG 或 PNG 格式!');
+        return false
+      }
+      if (!isLt2M) {
+        ElMessage.error('上传头像图片大小不能超过 2MB!');
+        return false
+      }
+
+      return isJpgOrPng && isLt2M;  // 如果格式和大小都符合，返回 true 继续上传
     };
 
     fetchUser();
@@ -88,11 +191,12 @@ export default {
     const dialogVisible = ref(false);
 
     // 表单数据
-    const form = ref({
-      username: myuser.username,
-      nickname: "", // 可以在此处添加昵称字段
-      avatar: myuser.avatar, // 头像预览
-      avatarFile: null, // 用于保存文件对象
+    const form = reactive({
+      username: '',
+      email: '',
+      avatar: '',
+      profile:'',
+      password:'',
     });
 
     const formatLastLogin = (dateString) => {
@@ -113,11 +217,35 @@ export default {
     };
 
     const saveProfile = () => {
-      dialogVisible.value = false;
+      if(!form.profile || !form.password || !form.email || !form.username){
+        ElMessage.warning("请填写完整信息")
+        return
+      }
+
+      post(`/users/update`, {
+            id: myuser.id,
+            username: form.username,
+            email: form.email,
+            password: "123456",
+            profile: form.profile,
+            avatar: form.avatar,
+          },
+          (message) => {
+            ElMessage.success(message);
+            dialogVisible.value = false;
+            fetchUser()
+            get(`/users/get/${myuser.id}`, (getMessage, getData) => {
+              store.auth.user = getData
+              localStorage.setItem("user", JSON.stringify(getData))//存在localStorage永久存储
+            })
+          }
+      )
+
+
     };
 
     const router = useRouter()
-    const gotoChat = () =>{
+    const gotoChat = () => {
       router.push(`/home/chats/${userId}`);
     }
 
@@ -130,7 +258,17 @@ export default {
       editProfile,
       formatLastLogin,
       saveProfile,
-      gotoChat
+      gotoChat,
+      fileList,
+      handleChange,
+      beforeRemove,
+      handleExceed,
+      previewDialogVisible,
+      previewTitle,
+      handleClosePreview,
+      previewImage,
+      handlePictureCardPreview,
+      beforeUpload
     };
   }
 };
@@ -210,5 +348,10 @@ export default {
 
 .el-menu {
   flex: 1;
+}
+
+
+.hide_box /deep/ .el-upload--picture-card {
+  display: none;
 }
 </style>

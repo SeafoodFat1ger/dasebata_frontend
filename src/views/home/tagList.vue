@@ -1,7 +1,7 @@
 <template>
   <div class="card-container" @scroll="handleScroll">
     <div v-for="tag in tags" :key="tag.id" class="card" @click="navigateToTag(tag.tag)">
-      <img :src="tag.image" :alt="tag.tag" class="card-image"/>
+      <img :src="tag.url" :alt="tag.tag" class="card-image"/>
       <div class="card-content">
         <h3 class="card-title">{{ tag.tag }}</h3>
         <p class="card-followers">{{ tag.tagPersonNum }} 人关注</p>
@@ -38,13 +38,7 @@ export default {
   },
   data() {
     return {
-      tags: [{
-        "id": 1,
-        "tag": "使用交流",
-        "image": "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
-        "tagPersonNum": 109,
-        "isFocus": false // 默认不收藏
-      }], // 存储所有加载的主题数据
+      tags: [], // 存储所有加载的主题数据
       currentPage: 1, // 当前加载的页码
       pageSize: 10, // 每页加载的记录数
       total: 0, // 记录总数

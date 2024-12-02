@@ -22,7 +22,7 @@
           style="height: 60%; width: 100%; display: flex; justify-content: space-between; overflow-x: auto;"
       >
         <div v-for="tag in tags" :key="tag.id" class="card">
-          <img :src="tag.image" :alt="tag.tag" class="card-image"/>
+          <img :src="tag.url" :alt="tag.tag" class="card-image"/>
           <div class="card-content">
             <h3 class="card-title">{{ tag.tag }}</h3>
             <p class="card-followers">{{ tag.tagPersonNum }} 人关注</p>
@@ -136,14 +136,14 @@ export default {
       });
 
       get(`/posts/get/hot/problem/all`, (message, data) => {
-        this.hotQuestions = data.records.slice(0, 10);
+        this.hotQuestions = data.records;
       });
 
     },
 
     async fetchTopics() {
       get(`/posts/getAllTags/hot/${userId}`, (message, data) => {
-        this.tags.push(...data.records.slice(0, 10));
+        this.tags = data.records;
       });
     },
 

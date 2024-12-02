@@ -102,14 +102,47 @@
         >{{ tag }}
         </el-tag>
       </el-form-item>
+
+
+      <el-form-item label="图片">
+        <el-upload
+            list-type="picture-card"
+            :action="'http://47.93.187.154:8082/posts/uploadImg'"
+            :on-change="handleChange"
+            :before-remove="beforeRemove"
+            :on-preview="handlePictureCardPreview"
+            :file-list="fileList.front_file"
+            multiple
+            :limit="1"
+            :on-exceed="handleExceed"
+            :before-upload="beforeUpload"
+            name="img"
+        >
+        </el-upload>
+      </el-form-item>
+
+
     </el-form>
 
 
     <myEditor @update:content="updateContent"/>
-    <div>
-      <h3>当前内容:</h3>
-      <div v-html="form.postContent"></div>
-    </div>
+
+    <!-- 预览图片的弹窗 -->
+    <el-dialog
+        v-model="previewDialogVisible"
+        :visible.sync="previewDialogVisible"
+        :title="previewTitle"
+        :width="'50%'"
+        :before-close="handleClosePreview"
+    >
+      <img
+          v-if="previewImage"
+          :src="previewImage"
+          alt="Preview Image"
+          class="preview-image"
+      />
+    </el-dialog>
+
     <div class="demo-drawer__footer">
       <el-button @click="cancelForm">Cancel</el-button>
       <el-button type="primary" @click="submitPost">Submit</el-button>
@@ -118,7 +151,7 @@
 </template>
 
 <script>
-import {ElAvatar, ElTag, ElIcon, ElPagination, ElMessage} from 'element-plus';
+import {ElAvatar, ElTag, ElIcon, ElPagination, ElMessage, ElMessageBox} from 'element-plus';
 import {ChatLineSquare} from "@element-plus/icons-vue";
 import myEditor from "../../components/Editor.vue";
 import {reactive, ref} from 'vue';
@@ -175,9 +208,18 @@ export default {
 
 
     const submitPost = async () => {
-      if (!form.postTitle || !form.postArea || !form.postContent) {
+      if (!form.postTitle || !form.postArea || !form.postContent ) {
         ElMessage.warning("请填写完整帖子信息")
         return
+      }
+
+      if(!form.avatar){
+        form.avatar = 'http://47.93.187.154:8082/imgview/1733126975372tmp.png';
+      }
+
+      if (tags.value.length > 5) {
+        ElMessage.warning("话题数不能多于5个");
+        return;
       }
 
       const userId = store.auth.user.id;
@@ -196,7 +238,7 @@ export default {
           },
           {
             "type": "image",
-            "data": "https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png",
+            "data": form.avatar,
           },
         ]
       }
@@ -233,42 +275,34 @@ export default {
 
 
     const handleTagSelect = (item) => {
-      if (tags.size() > 5) {
-        ElMessage.warning("话题数不能多于5个");
-        return;
-      }
       inputValue.value = '';
       isNewTagVisible.value = false;
-      addTag(item);
-      console.log(item)
+      addTag(item.name);
     }
 
+    const gameList = ref([])
 
     const querySearchAsync = async (queryString, cb) => {
       if (queryString.length === 0) {
         return;
       }
 
-      //TODO 接口！！！！！！
-      await get(`/posts/getAllTags/1/10`, (message, data) => {
-            tagSuggestions.value = tags
+
+      get(`/posts/find/tag/${queryString}`, (message, data) => {
+            gameList.value = data.records.map((tag, index) => ({
+              id: index + 1,  // 使用索引生成唯一 id
+              name: tag       // 将标签作为 name
+            }));
+            tagSuggestions.value = data.records
+            // console.log(tagSuggestions.value)
+            // console.log(gameList.value)
+            cb(gameList.value)
+
+            isNewTagVisible.value = true
+            newTag.value = queryString
+
           }
       )
-
-
-      const results = queryString
-          ? []
-          : tagSuggestions.value
-
-      cb(results)
-
-      if (results.length === 0) {
-        isNewTagVisible.value = true
-        newTag.value = queryString
-      } else {
-        isNewTagVisible.value = false
-        newTag.value = ''
-      }
     }
 
 
@@ -280,6 +314,10 @@ export default {
     }
 
     const addTag = async (tag) => {
+      if (tags.value.includes(tag)) {
+        ElMessage.warning("已添加过该话题")
+        return
+      }
       tags.value.push(tag);
     }
     const removeTag = async (tag) => {
@@ -288,6 +326,65 @@ export default {
 
     // 在组件挂载时获取初始数据
     fetchPosts();
+
+
+    // 上传图片
+    const fileList = ref([]);
+    const handleChange = file => {
+      if (file.status == "success") {
+        fileList.value = [];
+        fileList.value.push(file.response);
+        form.avatar = file.response.data;
+      }
+    };
+    // 删除
+    const beforeRemove = () => {
+      const result = new Promise((resolve, reject) => {
+        ElMessageBox.confirm("此操作将删除该图片, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+            .then(() => {
+              resolve();
+              form.avatar = '';
+            })
+            .catch(() => {
+              reject(false);
+            });
+      });
+      return result;
+    };
+
+    const handleExceed = () => {
+      ElMessage("只能上传一张");
+    }
+
+    const previewDialogVisible = ref(false);  // 控制预览弹窗显示
+    const previewImage = ref('');  // 存储预览的图片
+    const previewTitle = ref('图片预览');  // 预览图片的标题
+
+    const handlePictureCardPreview = (file) => {
+      // 获取点击的图片，并设置为预览图片
+      previewImage.value = file.url || URL.createObjectURL(file.raw);
+      previewDialogVisible.value = true; // 打开图片预览弹窗
+    };
+    const handleClosePreview = () => {
+      previewDialogVisible.value = false;
+    };
+    const beforeUpload = (file) => {
+      const isJpgOrPng = ['image/jpeg', 'image/png'].includes(file.type);
+      const isLt2M = file.size / 1024 / 1024 < 2; // 限制文件大小为 2MB
+
+      if (!isJpgOrPng) {
+        ElMessage.error('上传头像图片只能是 JPG 或 PNG 格式!');
+      }
+      if (!isLt2M) {
+        ElMessage.error('上传头像图片大小不能超过 2MB!');
+      }
+
+      return isJpgOrPng && isLt2M;  // 如果格式和大小都符合，返回 true 继续上传
+    };
 
     return {
       form,
@@ -315,6 +412,18 @@ export default {
       handleAreaChange,
       handleTagSelect,
       querySearchAsync,
+
+
+      fileList,
+      handleChange,
+      beforeRemove,
+      handleExceed,
+      previewDialogVisible,
+      previewTitle,
+      handleClosePreview,
+      previewImage,
+      handlePictureCardPreview,
+      beforeUpload
     };
   }
 }
