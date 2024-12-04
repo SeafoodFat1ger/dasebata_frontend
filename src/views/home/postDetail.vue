@@ -4,7 +4,8 @@
     <div class="post-details">
       <!-- 帖子标题和作者信息 -->
       <div class="post-header">
-        <img :src="postDetail.postAuthor.avatar" :alt="postDetail.postAuthor.name" class="avatar"/>
+        <img @click="navigateTo"
+            :src="postDetail.postAuthor.avatar" :alt="postDetail.postAuthor.name" class="avatar"/>
         <div class="post-title">
           <h2>{{ postDetail.postTitle }}</h2>
           <p class="username">{{ postDetail?.postAuthor?.name }}</p>
@@ -34,7 +35,22 @@
         <button @click="openReplyDialog" class="action-button">
           <span class="icon">✉️</span> 回复
         </button>
+        <button @click="deletePost" class="action-button">
+          <span class="icon">❌</span> 删除
+        </button>
       </div>
+
+      <!-- 回复对话框 -->
+      <div v-if="showReplyDialog" class="reply-dialog">
+        <div class="dialog-content">
+          <textarea v-model="replyContent" placeholder="请输入回复内容" rows="4"></textarea>
+          <div class="dialog-actions">
+            <button @click="closeReplyDialog">取消</button>
+            <button @click="submitReply">提交</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 评论区 -->
       <div class="comments">
         <div v-for="(comment, index) in comments" :key="comment.cmtId"
@@ -44,18 +60,14 @@
           <div class="comment-content">
             <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
             <p>{{ comment.cmtContent }}</p>
+            <p>{{ comment.cmtPublishDate }}</p>
           </div>
+          <!-- 删除按钮 -->
+          <button @click="deleteCmt(comment.cmtId)" class="delete-button">
+            删除
+          </button>
         </div>
       </div>
-
-      <!-- 回复对话框 -->
-      <el-dialog title="回复" :visible.sync="showReplyDialog" width="30%">
-        <el-input type="textarea" v-model="replyContent" placeholder="输入回复内容"></el-input>
-        <span slot="footer" class="dialog-footer">
-          <el-button @click="closeReplyDialog">取消</el-button>
-          <el-button type="primary" @click="submitReply">提交</el-button>
-        </span>
-      </el-dialog>
     </div>
   </div>
 </template>
@@ -70,7 +82,8 @@ import {ElMessage} from "element-plus";
 import {useRoute} from "vue-router";
 import 'element-plus/theme-chalk/el-icon.css';
 import {Star} from "@element-plus/icons-vue";
-import {useStore} from "@/stores/index.js"; // 引入图标样式
+import {useStore} from "@/stores/index.js";
+import router from "@/router/index.js"; // 引入图标样式
 
 const store = useStore();
 
@@ -89,32 +102,7 @@ export default {
 
     const userId = store.auth.user.id;
     const postId = route.params.id; // 获取帖子 ID
-    const postDetail = ref({
-      "postId": 29,
-      "postTitle": "",
-      "postAuthor": {
-        "avatar": "",
-        "name": ""
-      },
-      "postPublishDate": "",
-      "postTags": [
-        ""
-      ],
-      "postCommentNum": 0,
-      "postLikeNum": 1,
-      "postBookmarkNum": 0,
-      "isLiked": true,
-      "isBookmarked": false,
-      "postContents": [
-        {
-          "type": "text",
-          "data": ""
-        },
-        {
-          "type": "image",
-          "data": ""
-        }]
-    });
+    const postDetail = ref({});
     const colors = [
       '#fce4ec', // 颜色1
       '#e3f2fd', // 颜色2
@@ -124,40 +112,55 @@ export default {
       '#f0f4c3', // 颜色6
       '#ffe0b2', // 颜色7
     ];
-    const comments = [
-      {
-        cmtId: 2,
-        cmtContent: "这是评论2的内容",
-        cmtPublishDate: "2099-09-20 23:20",
-        cmtAuthor: {
-          avatar: "https://example.com/avatar2.png",
-          name: "Bob",
-        },
-      }, {
-        cmtId: 4,
-        cmtContent: "这是评论2的内容",
-        cmtPublishDate: "2099-09-20 23:20",
-        cmtAuthor: {
-          avatar: "https://example.com/avatar2.png",
-          name: "Bob",
-        },
-      }
-    ];
 
     const getRandomColor = (index) => {
       return colors[index % colors.length];
     };
 
+
+    const comments = ref([]);
     const fetchPostDetail = async (postId) => {
-      get(`/posts/getID/${postId}/${userId}`, onSuccess);
+      get(`/posts/getID/${postId}/${userId}`,
+          (message, data) => {
+            postDetail.value = data;           // 存储帖子数据
+            comments.value = data.comments; // 存储评论数据
+          });
+      console.log(comments.value);
     }
-
-    const onSuccess = (message, data) => {
-      postDetail.value = data;           // 存储帖子数据
-      comments.value = data.comments; // 存储评论数据
-    }
-
     fetchPostDetail(postId);
+
+    /** 删除评论 ***/
+    const deleteCmt = (cmtId) => {
+      const confirmDelete = confirm("确定要删除这个评论吗?");
+      if (confirmDelete) {
+        // 发送删除请求到后端
+        const data = {
+          postId: postId,
+          cmtId: cmtId,
+        };
+        // 调用后端删除接口
+        post(`/comments/delete`, data, (message, data) => {
+          ElMessage.success("评论删除成功");
+          // 删除本地的评论数据
+          comments.value = comments.value.filter(comment => comment.cmtId !== cmtId);
+        });
+      }
+    };
+
+    /** 删帖 **/
+    const deletePost = () => {
+      const confirmDelete = confirm("确定要删除这个帖子吗?");
+      if (confirmDelete) {
+        const data = {
+          postId: postId,
+        };
+        // 调用后端删除接口
+        post(`/posts/delete/${postId}`, data, (message, data) => {
+          ElMessage.success("帖子删除成功");
+          router.push('/home/posts');
+        });
+      }
+    }
 
     const likePost = () => {
       const likeData = {
@@ -195,36 +198,53 @@ export default {
     };
 
     /****** 关于回复框 ********/
-    let showReplyDialog = ref(false);
-    let replyContent = ref("");
+    const showReplyDialog = ref(false);
+    const replyContent = ref("");
 
-    const openReplyDialog = () => {
-      showReplyDialog.value = true;
-    };
-
-    const closeReplyDialog = () => {
-      showReplyDialog.value = false;
-      replyContent.value = ""; // 清空输入框内容
-    };
-
-    const submitReply = () => {
-      if (replyContent.value.trim() === "") {
+    const submitReply = async () => {
+      if (replyContent.value.length === 0) {
         ElMessage.warning("回复内容不能为空");
         return;
       }
-      // 执行回复逻辑，如发送请求
-      console.log("回复内容:", replyContent.value);
+      const replyData = {
+        postId: postId,
+        cmtAuthorId: userId,
+        content: replyContent.value,
+      };
+      console.log(replyData);
+      post(`/posts/addCmt`, replyData,
+          (message, data) => {
+            ElMessage.success("回复成功");
+            closeReplyDialog(); // 关闭对话框
+            fetchPostDetail(postId);
+            console.log(comments.value);
+          }
+      )
+    }
 
-      ElMessage.success("回复成功");
-      closeReplyDialog();
+    const openReplyDialog = () => {
+      showReplyDialog.value = true; // 显示对话框
+      replyContent.value = ""; // 清空之前的内容
     };
+    const closeReplyDialog = () => {
+      showReplyDialog.value = false; // 关闭对话框
+      replyContent.value = ""; // 清空输入框内容
+    };
+
+    const navigateTo=()=>{
+      router.push(`/home/profile/${userId}`);
+    }
 
     return {
       postId, postDetail, comments,
+      deleteCmt,
+      showReplyDialog, replyContent,
       fetchPostDetail,
       likePost, starPost,
-      showReplyDialog, replyContent, openReplyDialog, closeReplyDialog, submitReply,
+      submitReply, openReplyDialog, closeReplyDialog,
       getRandomColor,
+      deletePost,
+      navigateTo,
     }
   }
 };

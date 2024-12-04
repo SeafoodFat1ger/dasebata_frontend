@@ -89,7 +89,7 @@ export default {
 
 <style scoped>
 .post-item {
-  padding: 0px 0;
+  padding: 3px 0;
   transition: background-color 0.3s;
 }
 
