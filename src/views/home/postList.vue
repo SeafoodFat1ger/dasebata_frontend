@@ -1,8 +1,8 @@
 <template>
   <el-container class="content">
     <!-- 左侧菜单 -->
-    <el-aside width="200px">
-      <el-button type="primary" style="margin-left: 16px" @click="drawer = true">
+    <el-aside min-width="300px" width="120px">
+      <el-button type="primary" style="margin-left: 20px" @click="drawer = true">
         发起帖子
       </el-button>
       <el-menu
@@ -37,19 +37,23 @@
 
     </el-aside>
     <el-main>
-      <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="currentPageSize"
-          :page-sizes="pageSizes"
-          :disabled="disabled"
-          :background="background"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          @size-change="handlePageSizeChange"
-          @current-change="handlePageChange"
-      />
-      <div>
+      <div style="display: flex; justify-content: flex-start; flex-wrap: wrap;
+           gap: 10px; padding: 10px;">
         <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"/>
+      </div>
+
+      <div style="display: flex; justify-content: center; margin-top: 20px;">
+        <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="currentPageSize"
+            :page-sizes="pageSizes"
+            :disabled="disabled"
+            :background="background"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+            @size-change="handlePageSizeChange"
+            @current-change="handlePageChange"
+        />
       </div>
     </el-main>
   </el-container>
@@ -431,6 +435,7 @@ export default {
 </script>
 
 <style scoped>
+
 .fixed-header {
   position: fixed;
   top: 0;
@@ -455,5 +460,9 @@ export default {
 .pagination {
   margin-top: 20px;
   text-align: center;
+}
+
+.page-select {
+  margin: 0 auto;
 }
 </style>
