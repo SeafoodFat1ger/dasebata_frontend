@@ -141,7 +141,6 @@ export default {
 .post-item {
   min-width: 400px;/*******************/
   flex: 1 1 300px;  /* 让每个 PostItem 的宽度为 300px，且允许根据容器大小变化 */
-  min-height: 20px;  /* 设置最小高度 */
   max-height: 300px;  /* 设置最大高度 */
   margin: 5px;  /* 设置间距 */
   background-color: rgb(243, 245, 252);

@@ -9,19 +9,17 @@
       <div class="header-content">
         <div>
           <h1># {{ tagStr }}</h1>
-          <span>共 {{ totalPosts }} 篇帖子</span> | <span> {{ totalQuestions }} 个提问</span>
+          <div style="padding-top: 20px">
+            <span>共 {{ totalPosts }} 篇帖子</span> | <span> {{ totalQuestions }} 个提问</span>
+          </div>
         </div>
         <el-button
             type="primary"
             @click="drawer = true"
             size="large"
-            circle>
-          <el-icon>
-            <Plus/>
-          </el-icon>
+            >
+          发帖/提问
         </el-button>
-
-
       </div>
     </el-card>
 
@@ -31,13 +29,15 @@
       <el-tabs v-model="activeTab" class="tabs">
 
         <el-tab-pane label="帖子" name="articles">
-          <div class="post-list" @scroll="onScroll" ref="postList">
+          <div style="display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 10px; padding: 10px;"
+              @scroll="onScroll" ref="postList">
             <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="false"/>
           </div>
         </el-tab-pane>
 
         <el-tab-pane label="提问" name="questions">
-          <div class="post-list" @scroll="onScroll" ref="postList">
+          <div style="display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 10px; padding: 10px;"
+           @scroll="onScroll" ref="postList">
             <PostItem v-for="post in questions" :key="post.postId" :post="post" :needTag="false"/>
           </div>
         </el-tab-pane>
@@ -359,16 +359,69 @@ export default {
   margin-bottom: 20px;
   padding: 20px;
   background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 30px;
+  box-shadow: 0 2px 8px rgba(129, 122, 122, 0.1);
 }
 
 /* 标题和描述卡片样式 */
 .header-card .header-content {
   display: flex;
-  padding: 16px;
   justify-content: space-between;
+}
 
+/* 标题部分 */
+.header-content h1 {
+  font-size: 24px;
+  color: #333;
+  margin: 5px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.header-content span {
+  font-size: 14px;
+  color: #888;
+  font-weight: 500;
+  padding: 20px 10px;
+}
+
+/* 按钮样式 */
+.el-button {
+  border-radius: 7px;
+  background-color: rgba(232, 241, 255, 0.24);
+  color: #fff;
+  font-weight: 600;
+  width: 80px;
+  height: 30px;
+  border: 1px solid #428ef1;
+  margin-top: 50px;
+  margin-right: 20px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.el-button:hover {
+  background-color: #c8e4ff;
+  transform: translateY(-2px);  /* 鼠标悬停时上浮效果 */
+}
+
+.el-button:active {
+  background-color: #003d7a;
+  transform: translateY(0);
+}
+
+/* 边距 */
+.el-button {
+  margin-left: 10px;
+}
+
+/* 更细致的布局控制 */
+.header-content div {
+  flex-grow: 1;
+}
+
+/* 使文本元素的对齐方式更加紧凑 */
+.header-content div span {
+  margin-left: 10px;
 }
 
 /* 提问和文章列表卡片样式 */

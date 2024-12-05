@@ -97,7 +97,7 @@ const onBlur = () => {
 }
 
 .search-input {
-  width: 100%;
+  width: 90%;
   padding: 10px;
   border-radius: 6px;
   border: 1px solid #ddd;
@@ -121,7 +121,7 @@ const onBlur = () => {
   width: 100%;
   max-width: 300px;
   margin-top: 0;
-  background-color: #fff;
+  background: linear-gradient(135deg, rgba(194, 214, 246, 0.44), rgba(236, 255, 213, 0.51)); /* 渐变背景 */
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -161,8 +161,8 @@ h2 {
 }
 
 .contact-name {
-  font-weight: bold;
-  font-size: 16px;
+  font-weight: 550;
+  font-size: 14px;
   color: #333;
 }
 

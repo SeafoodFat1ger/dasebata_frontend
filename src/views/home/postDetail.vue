@@ -1,11 +1,13 @@
 <template>
-  <TopHeader/>
+  <TopHeader />
   <div class="post-container">
     <div class="post-details">
       <!-- 帖子标题和作者信息 -->
       <div class="post-header">
         <img @click="navigateTo"
-            :src="postDetail.postAuthor.avatar" :alt="postDetail.postAuthor.name" class="avatar"/>
+             :src="postDetail.postAuthor.avatar"
+             :alt="postDetail.postAuthor.name"
+             class="avatar" />
         <div class="post-title">
           <h2>{{ postDetail.postTitle }}</h2>
           <p class="username">{{ postDetail?.postAuthor?.name }}</p>
@@ -19,7 +21,7 @@
       <div class="post-content">
         <div v-for="content in postDetail.postContents" :key="content.data">
           <div v-if="content.type === 'text'" v-html="content.data"></div>
-          <img v-if="content.type === 'image'" :src="content.data" alt="帖子图片"/>
+          <img v-if="content.type === 'image'" :src="content.data" alt="帖子图片" />
         </div>
         <p class="post-date">{{ postDetail?.postPublishDate }}</p>
       </div>
@@ -27,16 +29,16 @@
       <!-- 点赞、收藏、回复按钮 -->
       <div class="actions">
         <button @click="likePost" class="action-button" :class="{'liked': postDetail.isLiked}">
-          <span class="icon">❤️</span> 点赞
+          <span class="icon">❤️</span>点赞
         </button>
         <button @click="starPost" class="action-button" :class="{'bookmarked': postDetail.isBookmarked}">
-          <span class="icon">⭐️</span> 收藏
+          <span class="icon">⭐️</span>收藏
         </button>
         <button @click="openReplyDialog" class="action-button">
-          <span class="icon">✉️</span> 回复
+          <span class="icon">✉️</span>回复
         </button>
-        <button @click="deletePost" class="action-button">
-          <span class="icon">❌</span> 删除
+        <button v-if="userId === postAuthorId" @click="deletePost" class="action-button delete">
+          <span class="icon">❌</span>删除
         </button>
       </div>
 
@@ -45,25 +47,29 @@
         <div class="dialog-content">
           <textarea v-model="replyContent" placeholder="请输入回复内容" rows="4"></textarea>
           <div class="dialog-actions">
-            <button @click="closeReplyDialog">取消</button>
-            <button @click="submitReply">提交</button>
+            <button @click="closeReplyDialog" class="cancel-btn">取消</button>
+            <button @click="submitReply" class="submit-btn">提交</button>
           </div>
         </div>
       </div>
 
       <!-- 评论区 -->
       <div class="comments">
-        <div v-for="(comment, index) in comments" :key="comment.cmtId"
-             :style="{ backgroundColor: getRandomColor(index) }"
-        >
-          <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"/>
-          <div class="comment-content">
+        <div v-for="(comment, index) in comments" :key="comment.cmtId" class="comment-card"
+             :style="{ backgroundColor: getRandomColor(index) }">
+          <div>
+            <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar" />
             <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
-            <p>{{ comment.cmtContent }}</p>
-            <p>{{ comment.cmtPublishDate }}</p>
           </div>
+
+          <div class="comment-content" style="flex-direction: column">
+            <p>{{ comment.cmtContent }}</p>
+            <p>nm的怎么他妈的一刷新就404啊 草了nm的怎么他妈的一刷新就404啊 草了nm的怎么他妈的一刷新就404啊 草了</p>
+            <div class="comment-date">{{ comment.cmtPublishDate }}</div>
+          </div>
+
           <!-- 删除按钮 -->
-          <button @click="deleteCmt(comment.cmtId)" class="delete-button">
+          <button v-if="comment.cmtAuthor.id === userId" @click="deleteCmt(comment.cmtId)" class="delete-comment-btn">
             删除
           </button>
         </div>
@@ -73,7 +79,6 @@
 </template>
 
 <script>
-import CommentBox from "@/components/CommentBox.vue";
 import TopHeader from "@/views/TopHeader.vue";
 import {Message} from "@element-plus/icons";
 import {post, get} from '@/net';
@@ -83,19 +88,23 @@ import {useRoute} from "vue-router";
 import 'element-plus/theme-chalk/el-icon.css';
 import {Star} from "@element-plus/icons-vue";
 import {useStore} from "@/stores/index.js";
-import router from "@/router/index.js"; // 引入图标样式
+import router from "@/router/index.js";
+import user from "@element-plus/icons/lib/User.js"; // 引入图标样式
 
 const store = useStore();
 
 export default {
   computed: {
+    user() {
+      return user
+    },
     Star() {
       return Star
     }
   },
   components: {
     Message, Star,
-    TopHeader, CommentBox
+    TopHeader,
   },
   setup() {
     const route = useRoute(); // 使用 useRoute 钩子获取路由信息
@@ -104,13 +113,13 @@ export default {
     const postId = route.params.id; // 获取帖子 ID
     const postDetail = ref({});
     const colors = [
-      '#fce4ec', // 颜色1
-      '#e3f2fd', // 颜色2
-      '#e8f5e9', // 颜色3
-      '#fffde7', // 颜色4
-      '#f3e5f5', // 颜色5
-      '#f0f4c3', // 颜色6
-      '#ffe0b2', // 颜色7
+      'rgba(252,228,236,0.42)', // 颜色1
+      'rgba(227,242,253,0.53)', // 颜色2
+      'rgba(232,245,233,0.34)', // 颜色3
+      'rgba(255,253,231,0.33)', // 颜色4
+      'rgba(243,229,245,0.23)', // 颜色5
+      'rgba(240,244,195,0.2)', // 颜色6
+      'rgba(255,224,178,0.26)', // 颜色7
     ];
 
     const getRandomColor = (index) => {
@@ -119,13 +128,16 @@ export default {
 
 
     const comments = ref([]);
+    const postAuthorId = ref();
     const fetchPostDetail = async (postId) => {
       get(`/posts/getID/${postId}/${userId}`,
           (message, data) => {
             postDetail.value = data;           // 存储帖子数据
             comments.value = data.comments; // 存储评论数据
+            postAuthorId.value = data.postAuthor.id;
+            console.log(postAuthorId.value);
           });
-      console.log(comments.value);
+      // console.log(comments.value);
     }
     fetchPostDetail(postId);
 
@@ -217,7 +229,7 @@ export default {
             ElMessage.success("回复成功");
             closeReplyDialog(); // 关闭对话框
             fetchPostDetail(postId);
-            console.log(comments.value);
+            //console.log(comments.value);
           }
       )
     }
@@ -236,7 +248,7 @@ export default {
     }
 
     return {
-      postId, postDetail, comments,
+      postId, postDetail, comments,userId,postAuthorId,
       deleteCmt,
       showReplyDialog, replyContent,
       fetchPostDetail,
@@ -251,133 +263,281 @@ export default {
 </script>
 
 <style scoped>
-.post-container {
-  display: flex;
-  justify-content: center; /* 居中对齐 */
-  padding: 20px; /* 上下左右留白 */
+/* 全局样式 */
+.post-content img {
+  width: 80%;
+  height: auto; /* 保持图片的纵横比 */
+  object-fit: cover; /* 保证图片在50%的宽度内不会变形 */
+  margin: 10px 0; /* 添加一些上下边距来提高视觉效果 */
+  display: block; /* 确保图片为块级元素，便于控制 */
+  max-width: 100%; /* 防止图片超出容器 */
+}
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
 }
 
-.post-details {
-  max-width: 800px; /* 设置最大宽度，避免内容过宽 */
-  width: 100%;
-  border: 1px solid #ddd;
-  padding: 16px;
-  border-radius: 8px;
+/* 帖子容器 */
+.post-container {
+  width: 70%;
+  max-width: 900px;
+  margin: 40px auto;
   background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
 .post-header {
   display: flex;
   align-items: center;
-  background-color: #e0f7fa;
-  padding: 16px;
-  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .avatar {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  margin-right: 16px;
+  margin-right: 15px;
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+  box-shadow 0.3s ease-in-out,
+  filter 0.3s ease-in-out;  /* 添加平滑过渡 */
+}
+
+.avatar:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.2);
 }
 
 .post-title {
   flex: 1;
-  font-size: 20px;
+}
+
+.post-title h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
 }
 
 .username {
-  font-size: 14px;
-  color: #555;
+  margin: 5px 0 0;
+  font-size: 16px;
+  color: #888;
 }
 
 .divider {
-  height: 1px;
-  background-color: #ccc;
-  margin: 16px 0;
+  border-bottom: 1px solid #eee;
+  margin: 20px 0;
 }
 
-.post-content p {
-  margin: 8px 0;
+.post-content {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #444;
 }
 
 .post-date {
+  font-size: 14px;
+  color: #bbb;
+  margin-top: 20px;
   text-align: right;
-  font-size: 12px;
-  color: #888;
-  margin-top: 16px;
 }
 
 .actions {
   display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.action-button {
-  display: flex;
-  align-items: center;
-  padding: 8px 16px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-
-.liked {
-  background-color: #ff6666; /* 点赞按钮被点赞时的深色背景 */
-}
-
-
-.bookmarked {
-  background-color: #66ccff; /* 收藏按钮被收藏时的深色背景 */
-}
-
-
-.icon {
-  margin-right: 6px;
-}
-
-.comments {
+  gap: 15px;
   margin-top: 20px;
 }
 
-.comment {
+.action-button {
+  background-color: #fff;
+  border: 2px solid #dadada; /* 默认没有边框 */
+  border-radius: 10px;
+  padding: 3px 3px;
+  font-size: 14px;
   display: flex;
-  padding: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  font-weight: 550;
+  width: 80px;
+}
+
+/* 删除按钮的样式 */
+.action-button.delete {
+  color: #d9534f;
+}
+
+/* 添加每个按钮的颜色变化 */
+.action-button .icon {
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+
+.action-button:hover .icon {
+  transform: scale(1.2);  /* 鼠标悬停时图标放大 */
+}
+
+/* "点赞" 按钮被点击时的样式 */
+.action-button.liked {
+  border-color: red;  /* 当isLiked为true时，边框变为红色 */
+  background-color: rgba(255, 211, 211, 0.87);  /* 让背景色更清爽 */
+  color: red;  /* 改变文本和图标的颜色 */
+}
+
+/* "收藏" 按钮 */
+.action-button.bookmarked {
+  background-color: rgba(255, 239, 194, 0.75);
+  color: #735800;
+  border-color: #ffbf00;
+}
+
+.action-button.delete:hover {
+  background-color: #f1f1f1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.action-button.delete:active {
+  background-color: #f0d6d6;
+}
+
+
+.reply-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dialog-content {
+  background-color: white;
+  padding: 20px;
+  width: 80%;
+  max-width: 600px;
   border-radius: 8px;
-  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.comment-even {
-  background-color: #fce4ec;
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  resize: none;
 }
 
-.comment-1 {
-  background-color: #e8f5e9;
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
 }
 
-.comment-1 {
-  background-color: #e8f5e9;
+.dialog-actions button {
+  background-color: #409EFF;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  margin-left: 10px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.comment-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 10px;
+.dialog-actions button:hover {
+  background-color: #3077C1;
 }
 
-.comment-content {
+/* 评论区 */
+.comments {
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
-.comment-author {
-  font-weight: bold;
+.comment-card {
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);  /* 添加柔和的阴影 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.comment-card:hover {
+  transform: translateY(-3px);  /* 上浮效果 */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);  /* 更深的阴影 */
+}
+
+/* 评论头像 */
+.comment-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;  /* 圆形头像 */
+  object-fit: cover;
+  border: 2px solid #464646;  /* 轻微的边框 */
+}
+/* 评论作者 */
+.comment-author {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  padding-left: 10px;
+  margin-top: 0px;
+}
+
+.comment-date {
+  font-size: 12px;
+  color: #bbb;
+  /* 分别设置 top, right, bottom, left 的 padding */
+  margin: 15px 20px 0px 5px;
+}
+
+/* 评论内容 */
+.comment-content p {
+  font-size: 17px;
+  color: #2d2d2d;
+  line-height: 1.5;
+  /* 分别设置 top, right, bottom, left 的 padding */
+  margin: 20px 10px 10px 10px;
+}
+
+.delete-comment-btn {
+  color: #d9534f;
+  background-color: #fff;
+  border: 2px solid #dadada; /* 默认没有边框 */
+  border-radius: 10px;
+  padding: 3px 3px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  font-weight: 550;
+  width: 45px;
+  min-width: 40px;
+}
+
+.delete-comment-btn:hover {
+  border: 2px solid #e04343;
+  background-color: rgba(224, 67, 67, 0.18);
+}
+
 </style>
 
 

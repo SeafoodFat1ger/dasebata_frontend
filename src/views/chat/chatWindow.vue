@@ -1,11 +1,13 @@
 <template>
   <div class="el_main_content">
-    <div class="main_content_header">{{ user.username }}</div>
+    <div class="main_content_header">
+      <span class="username">{{ user.username }}</span>
+    </div>
     <div class="main_content_center">
       <el-scrollbar class="faultExpertConsultation_scrollbar" ref="scrollbarRef" @scroll="onScroll">
         <!-- 查看更多历史记录按钮 -->
         <div v-if="showLoadMore" class="load-more-btn">
-          <el-button @click="loadMoreHistory" type="text" size="small">查看更多历史记录</el-button>
+          <el-button @click="loadMoreHistory" type="text" size="small" class="load-more-btn-text">查看更多历史记录</el-button>
         </div>
 
         <!-- 对话内容 -->
@@ -52,14 +54,14 @@ const scrollbarRef = ref(null);
 
 const store = useStore();
 const route = useRoute();
-let userId = route.params.userId; // 当前用户ID
+let userId = route.params.userId;
 const user = ref({});
 
-const currentPage = ref(1); // 当前页
-const pageSize = ref(10);   // 每页消息条数
-const totalMessages = ref(0); // 总消息数
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalMessages = ref(0);
 const loadingMessages = ref(false); // 防止重复加载消息
-const showLoadMore = ref(false); // 是否显示"查看更多历史记录"按钮
+const showLoadMore = ref(false);
 
 const myuser = store.auth.user; // 当前登录用户
 
@@ -115,6 +117,7 @@ const askClick = (val) => {
       toId: userId,
     }, (message, data) => {
       question.value = ""; // 发送后清空输入框
+      fetchHistoryMessages();
     });
   } else {
     ElMessage("不能发送空白消息");
@@ -210,45 +213,69 @@ onBeforeUnmount(() => {
   resize: none;
 }
 
+/* Load more button */
 .load-more-btn {
   text-align: center;
-  margin: 10px 0;
+  margin-top: 10px;
 }
+
+.load-more-btn-text {
+  font-size: 14px;
+  color: #656565;
+  font-weight: 500;
+}
+
+.load-more-btn-text:hover {
+  text-decoration: underline;
+}
+
 </style>
 
 <style lang="less" scoped>
 .el_main_content {
-  width: 80%;
-  height: 80vh;
-  border-radius: 5px;
-  border: 1px solid #e4e7ed;
-  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);
-  margin: auto;
+  background-color: #f4f7fa;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: 700px;
+  width: 600px;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .main_content_header {
-  width: 100%;
-  height: 50px;
-  border-radius: 5px;
-  background-color: #409eff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
+  background: linear-gradient(135deg, rgba(194, 214, 246, 0.44), #F3D5FF82); /* 渐变背景 */
+  padding: 15px;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 8px;
+}
+
+.username {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
 }
 
 .main_content_center {
   width: 100%;
-  height: 70%;
+  height: 80%;
   margin: 10px 0;
   overflow-y: auto;
-  padding-right: 10px;
+  flex: 1;
+  padding: 5px;
 }
 
+/* Time display for chat */
 .chat_time {
-  display: flex;
-  justify-content: center;
-  font-size: 20px;
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  margin: 15px 0;
 }
 
 .question {
@@ -267,20 +294,30 @@ onBeforeUnmount(() => {
 }
 
 .chat {
-  width: 98%;
-  margin: 10px auto;
   display: flex;
+  margin-bottom: 20px;
+  align-items: flex-end;
 }
 
 .chat_common {
-  max-width: 40%;
-  padding: 10px;
-  border-radius: 2px;
-  word-break: break-all;
-  display: flex;
-  align-items: center;
+  background-color: #fff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  max-width: 70%;
+  word-wrap: break-word;
 }
 
+.chat_question {
+  background: linear-gradient(135deg, #EEF4FF70, #F3D5FFC2);
+  color: #333;
+  margin-right: 15px;
+}
+
+.chat_answer {
+  background: linear-gradient(135deg, #A1BEEE9B, #EEF6FF81);
+  color: #333;
+}
 .me {
   font-size: 16px;
   color: #ffffff;
@@ -296,35 +333,54 @@ onBeforeUnmount(() => {
 }
 
 .input_box {
-  width: 100%;
-  height: 60%;
+  flex: 1;
+}
 
-  .chat-input {
-    font-size: 28px;
-    width: 100%;
-    padding: 10px;
-    margin: auto;
-    resize: none;
-  }
+.chat-input {
+  width: 100%;
+  min-height: 50px;
+  padding: 15px 25px;
+  border-radius: 15px;
+  border: 1px solid #e0e0e0;
+  font-size: 14px;
+  background-color: #f9f9f9;
+  outline: none;
+  resize: none;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.chat-input:focus {
+  border-color: #007bff;
 }
 
 .btn_box {
-  width: 100%;
-  height: 40%;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  margin-left: auto;
+
+}
+
+.btn {
+  background-color: rgba(215, 158, 241, 0.6);
+  color: #313131;
+  border-radius: 20px;
+  padding: 15px 20px;
+  font-weight: 600;
+  border: #071f47 10px;
+}
+
+.btn:hover {
+  background-color: #B181C799;
 }
 
 .faultExpertConsultation_scrollbar {
   max-height: calc(100vh - 220px);
+  padding-right: 10px;
 }
 
 .avatar {
-  background-color: #409eff;
-  border: 2px solid #409eff;
-  width: 50px;
-  height: 50px;
+  border: 1px solid #484848;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
 }

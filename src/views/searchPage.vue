@@ -3,7 +3,7 @@
     <!-- 返回按钮 -->
     <div class="search-header">
       <button @click="goBack" class="back-button">
-        ← 返回
+        < 返回
       </button>
     </div>
 
@@ -22,7 +22,7 @@
           <div class="result-section" v-if="problems.length === 0 && !loading">
             <p>没有找到相关问题</p>
           </div>
-          <div v-else class="result-section">
+          <div v-else class="post-items-container">
             <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"/>
           </div>
         </div>
@@ -33,7 +33,7 @@
           <div class="result-section" v-if="posts.length === 0 && !loading">
             <p>没有找到相关帖子</p>
           </div>
-          <div v-else class="result-section">
+          <div v-else class="post-items-container">
             <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="false"/>
           </div>
         </div>
@@ -139,7 +139,7 @@ onMounted(() => {
   background-color: transparent;
   border: none;
   color: #409EFF;
-  font-size: 20px;
+  font-size: 16px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -149,25 +149,77 @@ onMounted(() => {
   text-decoration: underline;
 }
 
+.results-container {
+  padding: 20px;
+  background-color: #FFFAF5FF;
+}
+
 .results-columns {
   display: flex;
+  gap: 20px;
   justify-content: space-between;
+  flex-wrap: wrap; /* 支持响应式布局 */
+  max-width: 100%; /* 保证不会超出父容器 */
 }
 
 .results-column {
-  width: 32%;
-  padding: 10px;
+  flex: 1;
+  min-width: 280px;
+  background-color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px 20px 30px 15px;
+  margin: 5px;
+  transition: transform 0.3s ease;
+  gap: 10px;
+}
+
+.results-column:hover {
+  transform: translateY(-1px);
+}
+
+h2 {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 15px;
+  border-bottom: 2px solid rgba(54, 20, 0, 0.22);
+  padding-bottom: 5px;
+}
+
+.result-section {
+  margin-top: 20px;
+}
+
+.post-items-container {
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  flex-wrap: wrap; /* 支持换行 */
+  gap: 3px; /* 子元素之间的间距 */
+  padding: 5px;
+  max-width: 100%; /* 保证不会超出父容器 */
+  box-sizing: border-box;
 }
 
 .result-item {
-  margin-bottom: 20px;
+  margin-bottom: 10px; /* 给每个卡片之间添加间距 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .result-card {
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  padding: 10px;
+  border-radius: 12px; /* 卡片圆角 */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* 卡片阴影 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  max-width: 700px; /* 最大宽度，防止卡片过大 */
+  margin: 0 auto; /* 使卡片居中 */
+  background: linear-gradient(135deg, rgba(194, 214, 246, 0.44), rgba(236, 255, 213, 0.51)); /* 渐变背景 */
+}
+
+
+.result-card:hover {
+  transform: translateY(-5px);
 }
 
 .card-content {
@@ -176,16 +228,26 @@ onMounted(() => {
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  object-fit: cover;
-  margin-right: 15px;
+  margin-right: 10px;
 }
 
-
 .username {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .results-columns {
+    flex-direction: column;
+  }
+
+  .results-column {
+    flex: none;
+    width: 100%;
+  }
 }
 </style>
