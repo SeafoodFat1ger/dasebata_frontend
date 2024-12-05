@@ -21,12 +21,12 @@
       <div class="post-content">
         <div v-for="content in postDetail.postContents" :key="content.data">
           <div v-if="content.type === 'text'" v-html="content.data"></div>
-          <img v-if="content.type === 'image'" :src="content.data" alt="帖子图片" />
+          <img v-if="content.type === 'image' && content.data !== 'null'" :src="content.data" alt="帖子图片" />
         </div>
         <p class="post-date">{{ postDetail?.postPublishDate }}</p>
       </div>
 
-      <!-- 点赞、收藏、回复按钮 -->
+      <!-- 点赞、收藏、评论按钮 -->
       <div class="actions">
         <button @click="likePost" class="action-button" :class="{'liked': postDetail.isLiked}">
           <span class="icon">❤️</span>点赞
@@ -35,17 +35,17 @@
           <span class="icon">⭐️</span>收藏
         </button>
         <button @click="openReplyDialog" class="action-button">
-          <span class="icon">✉️</span>回复
+          <span class="icon">✉️</span>评论
         </button>
-        <button v-if="userId === postAuthorId" @click="deletePost" class="action-button delete">
-          <span class="icon">❌</span>删除
+        <button v-if="userId === 3 ||userId === postAuthorId" @click="deletePost" class="action-button delete">
+          <span class="icon">❌</span>删帖
         </button>
       </div>
 
-      <!-- 回复对话框 -->
+      <!-- 评论对话框 -->
       <div v-if="showReplyDialog" class="reply-dialog">
         <div class="dialog-content">
-          <textarea v-model="replyContent" placeholder="请输入回复内容" rows="4"></textarea>
+          <textarea v-model="replyContent" placeholder="请输入评论内容" rows="4"></textarea>
           <div class="dialog-actions">
             <button @click="closeReplyDialog" class="cancel-btn">取消</button>
             <button @click="submitReply" class="submit-btn">提交</button>
@@ -64,12 +64,12 @@
 
           <div class="comment-content" style="flex-direction: column">
             <p>{{ comment.cmtContent }}</p>
-            <p>nm的怎么他妈的一刷新就404啊 草了nm的怎么他妈的一刷新就404啊 草了nm的怎么他妈的一刷新就404啊 草了</p>
             <div class="comment-date">{{ comment.cmtPublishDate }}</div>
           </div>
 
           <!-- 删除按钮 -->
-          <button v-if="comment.cmtAuthor.id === userId" @click="deleteCmt(comment.cmtId)" class="delete-comment-btn">
+          <button v-if="userId === 3 || comment.cmtAuthor.id === userId"
+                  @click="deleteCmt(comment.cmtId, comment.cmtContent, comment.cmtAuthor)" class="delete-comment-btn">
             删除
           </button>
         </div>
@@ -90,7 +90,6 @@ import {Star} from "@element-plus/icons-vue";
 import {useStore} from "@/stores/index.js";
 import router from "@/router/index.js";
 import user from "@element-plus/icons/lib/User.js"; // 引入图标样式
-
 const store = useStore();
 
 export default {
@@ -135,42 +134,90 @@ export default {
             postDetail.value = data;           // 存储帖子数据
             comments.value = data.comments; // 存储评论数据
             postAuthorId.value = data.postAuthor.id;
-            console.log(postAuthorId.value);
           });
       // console.log(comments.value);
     }
     fetchPostDetail(postId);
 
-    /** 删除评论 ***/
-    const deleteCmt = (cmtId) => {
-      const confirmDelete = confirm("确定要删除这个评论吗?");
-      if (confirmDelete) {
-        // 发送删除请求到后端
-        const data = {
-          postId: postId,
-          cmtId: cmtId,
-        };
-        // 调用后端删除接口
-        post(`/comments/delete`, data, (message, data) => {
-          ElMessage.success("评论删除成功");
-          // 删除本地的评论数据
-          comments.value = comments.value.filter(comment => comment.cmtId !== cmtId);
-        });
+    /** 删评论 ***/
+    const deleteCmt = (cmtId, content, cmtAuthor) => {
+      if (userId === 3 && cmtAuthor.name !== "root") {
+        const confirmDelete = confirm("尊敬的管理员您好，确定要删除这个评论吗?\n删除后将通知该用户");
+        if (confirmDelete) {
+          const data = {
+            postId: postId,
+            cmtId: cmtId,
+          };
+          sendMsg("from管理员的信息: 【"+
+              cmtAuthor.name+"】同学你好，你在帖子标题为 \""+postDetail.value.postTitle+
+              "\"中的评论"+"\"" +content+ "\""+
+              "已被管理员删除！", cmtAuthor.id);
+          // 调用后端删除接口
+          post(`/posts/deleteCmt/${cmtId}`, data, (message, data) => {
+            ElMessage.success("评论删除成功！已通知该用户~");
+            // 删除本地的评论数据
+            comments.value = comments.value.filter(comment => comment.cmtId !== cmtId);
+          });
+        }
+      }
+      else {
+        const confirmDelete = confirm("确定要删除这个评论吗?");
+        if (confirmDelete) {
+          const data = {
+            postId: postId,
+            cmtId: cmtId,
+          };
+          // 调用后端删除接口
+          post(`/posts/deleteCmt/${cmtId}`, data, (message, data) => {
+            ElMessage.success("评论删除成功！");
+            // 删除本地的评论数据
+            comments.value = comments.value.filter(comment => comment.cmtId !== cmtId);
+          });
+        }
       }
     };
 
+    function sendMsg(str, toId) {
+      post(`/chats/add`, {
+        message: str,
+        fromId: 3,
+        toId: toId,
+      }, (message, data) => {
+        //ElMessage("不能发送空白消息");
+      });
+    }
+
     /** 删帖 **/
     const deletePost = () => {
-      const confirmDelete = confirm("确定要删除这个帖子吗?");
-      if (confirmDelete) {
-        const data = {
-          postId: postId,
-        };
-        // 调用后端删除接口
-        post(`/posts/delete/${postId}`, data, (message, data) => {
-          ElMessage.success("帖子删除成功");
-          router.push('/home/posts');
-        });
+      if (userId === 3 && postAuthorId.value !== 3) {
+        // 管理员进行删帖
+        const confirmDelete = confirm("尊敬的管理员您好，确定要删除这个帖子吗?\n删除后将通知该用户");
+        if (confirmDelete) {
+          const data = {
+            postId: postId,
+          };
+          sendMsg("from管理员的信息: 【"+
+              postDetail.value.postAuthor.name+"】同学你好，你的标题为 \""+postDetail.value.postTitle+
+          "\" 的帖子已被管理员删除！", postAuthorId.value);
+          // 调用后端删除接口
+          post(`/posts/delete/${postId}`, data, (message, data) => {
+            ElMessage.success("帖子删除成功，已告知该用户");
+            router.push('/home/posts');
+          });
+        }
+      }
+      else {
+        const confirmDelete = confirm("确定要删除这个帖子吗?");
+        if (confirmDelete) {
+          const data = {
+            postId: postId,
+          };
+          // 调用后端删除接口
+          post(`/posts/delete/${postId}`, data, (message, data) => {
+            ElMessage.success("帖子删除成功");
+            router.push('/home/posts');
+          });
+        }
       }
     }
 
@@ -209,13 +256,13 @@ export default {
       }
     };
 
-    /****** 关于回复框 ********/
+    /****** 关于评论框 ********/
     const showReplyDialog = ref(false);
     const replyContent = ref("");
 
     const submitReply = async () => {
       if (replyContent.value.length === 0) {
-        ElMessage.warning("回复内容不能为空");
+        ElMessage.warning("评论内容不能为空");
         return;
       }
       const replyData = {
@@ -226,7 +273,7 @@ export default {
       console.log(replyData);
       post(`/posts/addCmt`, replyData,
           (message, data) => {
-            ElMessage.success("回复成功");
+            ElMessage.success("评论成功");
             closeReplyDialog(); // 关闭对话框
             fetchPostDetail(postId);
             //console.log(comments.value);
@@ -244,7 +291,7 @@ export default {
     };
 
     const navigateTo=()=>{
-      router.push(`/home/profile/${userId}`);
+      router.push(`/home/profile/${postAuthorId.value}`);
     }
 
     return {
@@ -283,7 +330,7 @@ body {
   width: 70%;
   max-width: 900px;
   margin: 40px auto;
-  background-color: #fff;
+  background: linear-gradient(135deg, rgba(172, 186, 223, 0.79), #FCFDE9FF); /* 渐变背景 */
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -469,10 +516,10 @@ textarea {
 .comment-card {
   background-color: #f9f9f9;
   border-radius: 10px;
-  padding: 15px;
+  padding: 5px;
   display: flex;
   align-items: flex-start;
-  gap: 15px;
+  gap: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);  /* 添加柔和的阴影 */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -506,6 +553,9 @@ textarea {
   margin: 15px 20px 0px 5px;
 }
 
+.comment-content {
+  width: 800px;
+}
 /* 评论内容 */
 .comment-content p {
   font-size: 17px;

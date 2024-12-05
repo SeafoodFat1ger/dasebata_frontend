@@ -7,7 +7,9 @@
       <el-scrollbar class="faultExpertConsultation_scrollbar" ref="scrollbarRef" @scroll="onScroll">
         <!-- 查看更多历史记录按钮 -->
         <div v-if="showLoadMore" class="load-more-btn">
-          <el-button @click="loadMoreHistory" type="text" size="small" class="load-more-btn-text">查看更多历史记录</el-button>
+          <el-button @click="loadMoreHistory" type="text" size="small" class="load-more-btn-text">
+            ——————查看更多历史记录——————
+          </el-button>
         </div>
 
         <!-- 对话内容 -->

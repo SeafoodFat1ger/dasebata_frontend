@@ -10,9 +10,7 @@
             class="favorite-btn"
             :class="{ 'focused': tag.isFocus }"
             @click.stop="toggleFavorite(tag)">
-          <el-icon>
-            <Star/>
-          </el-icon>
+          <span class="icon">⭐️</span>
         </button>
       </div>
     </div>
@@ -176,13 +174,15 @@ export default {
 }
 
 .favorite-btn:hover {
-  background-color: rgba(49, 162, 232, 0.1);
-  color: #409eff;
+  background-color: rgba(255, 239, 194, 0.75);
+  color: #735800;
+  border-color: #ffc71c;
 }
 
 .favorite-btn.focused {
-  background-color: #409eff; /* 深色背景 */
-  color: #fff; /* 白色文字 */
+  background-color: #ffaf5f;
+  color: #4f4011;
+  border-color: #735400;
 }
 
 .loading,

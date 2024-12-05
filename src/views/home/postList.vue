@@ -5,6 +5,10 @@
       <el-button type="primary" style="margin-left: 20px" @click="drawer = true">
         发起帖子
       </el-button>
+      <el-button v-if="3===userId" type="primary" style="margin-left: 20px; margin-top: 5px"
+                 @click="addNotice">
+        发起公告
+      </el-button>
       <el-menu
           default-active="0"
           class="el-menu-vertical-demo"
@@ -196,6 +200,7 @@ export default {
     const newTag = ref('');
     const activeArea = ref(0);
     const tagSuggestions = ref([])
+    const userId = store.auth.user.id;
 
 
     // 获取帖子数据
@@ -210,6 +215,15 @@ export default {
       drawer.value = false;
     }
 
+    const isNoticePost = ref(false);
+
+    function addNotice() {
+      const confirmDelete = confirm("尊敬的管理员您好，您将要发布的公告会通知所有用户~");
+      if (confirmDelete) {
+        isNoticePost.value = true;
+        drawer.value = true;
+      }
+    }
 
     const submitPost = async () => {
       if (!form.postTitle || !form.postArea || !form.postContent ) {
@@ -218,7 +232,8 @@ export default {
       }
 
       if(!form.avatar){
-        form.avatar = 'http://47.93.187.154:8082/imgview/1733126975372tmp.png';
+        //form.avatar = 'http://47.93.187.154:8082/imgview/1733126975372tmp.png';
+        form.avatar='null';
       }
 
       if (tags.value.length > 5) {
@@ -246,14 +261,27 @@ export default {
           },
         ]
       }
+      let pid = 0;
       post(`/posts/add`, requestData,
-          (message) => {
+          (message, data) => {
             ElMessage.success(message)
             drawer.value = false;
             fetchPosts(activeArea.value, 1);
+            pid=data;
+
+            if (isNoticePost.value) {
+              // 将信息发给所有人
+              const reqData = {
+                message: "管理员发公告了！快去查看吧！ "+"http://39.105.0.52/home/postDetail/"+pid,
+                fromId: 3,
+              };
+              post(`/chats/addAll`, reqData, (message)=>{
+                isNoticePost.value = false;
+                ElMessage("群发成功");
+              })
+            }
           }
       )
-
     };
 
     const handleAreaChange = async (area) => {
@@ -391,6 +419,7 @@ export default {
     };
 
     return {
+      userId,
       form,
       drawer,
       posts,
@@ -416,7 +445,7 @@ export default {
       handleAreaChange,
       handleTagSelect,
       querySearchAsync,
-
+      addNotice,
 
       fileList,
       handleChange,
