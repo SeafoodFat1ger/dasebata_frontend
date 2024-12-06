@@ -19,24 +19,82 @@
           </div>
           <div v-if="item.from === '我'" class="question chat">
             <div class="chat_question chat_common">
-              <span>{{ item.message }}</span>
+              <!-- 如果消息是图片链接，渲染为图片 -->
+              <img v-if="isImageUrl(item.message)" :src="item.message" class="message-image"/>
+              <!-- 否则渲染为文本 -->
+              <span v-else>{{ item.message }}</span>
             </div>
             <img :src="myuser.avatar" alt="wo" class="avatar">
           </div>
           <div v-if="item.from === '他'" class="answer chat">
             <img :src="user.avatar" alt="ta" class="avatar">
             <div class="chat_answer chat_common">
-              <span>{{ item.message }}</span>
+              <!-- 如果消息是图片链接，渲染为图片 -->
+              <img v-if="isImageUrl(item.message)" :src="item.message" class="message-image"/>
+              <!-- 否则渲染为文本 -->
+              <span v-else>{{ item.message }}</span>
             </div>
           </div>
         </div>
       </el-scrollbar>
     </div>
+
+    <!-- 预览图片的弹窗 -->
+    <el-dialog
+        v-model="previewDialogVisible"
+        :visible.sync="previewDialogVisible"
+        :title="previewTitle"
+        :width="'50%'"
+        :before-close="handleClosePreview"
+    >
+      <img
+          v-if="previewImage"
+          :src="previewImage"
+          alt="Preview Image"
+          class="preview-image"
+      />
+    </el-dialog>
+
+    <!-- 评论对话框 -->
+    <div v-if="showReplyDialog" class="reply-dialog">
+      <div class="dialog-content">
+        <div class="dialog-header">
+          <span class="dialog-title">上传图片</span>
+        </div>
+        <div class="dialog-body">
+          <el-form :model="form">
+            <el-form-item label="图片" class="upload-item">
+              <el-upload
+                  list-type="picture-card"
+                  :action="'http://47.93.187.154:8082/posts/uploadImg'"
+                  :on-change="handleChange"
+                  :before-remove="beforeRemove"
+                  :on-preview="handlePictureCardPreview"
+                  :file-list="fileList.front_file"
+                  multiple
+                  :limit="1"
+                  :on-exceed="handleExceed"
+                  :before-upload="beforeUpload"
+                  name="img"
+              >
+              </el-upload>
+            </el-form-item>
+          </el-form>
+        </div>
+        <div class="dialog-actions">
+          <button @click="closeReplyDialog" class="cancel-btn">取消</button>
+          <button @click="askClick(form.avatar)" class="submit-btn">提交</button>
+        </div>
+      </div>
+    </div>
+
+
     <div class="main_content_footer">
       <div class="input_box">
         <textarea class="chat-input no-border" v-model="question"/>
       </div>
       <div class="btn_box">
+        <el-button type="primary" class="btn" @click="openReplyDialog">发送图片</el-button>
         <el-button type="primary" class="btn" @click="askClick(question)">发送</el-button>
       </div>
     </div>
@@ -44,11 +102,12 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount, computed, watch} from "vue";
-import {ElMessage} from "element-plus";
+import {ref, onMounted, onBeforeUnmount, computed, watch, reactive} from "vue";
+import {ElMessage, ElMessageBox} from "element-plus";
 import {get, post} from "@/net/index.js";
 import {useRoute} from "vue-router";
 import {useStore} from "@/stores/index.js";
+import myEditor from "@/components/Editor.vue";
 
 const question = ref(""); // 输入框值
 const chatList = ref([]); // 聊天记录数组
@@ -71,6 +130,82 @@ const fetchUser = () => {
   get(`/users/get/${userId}`, (message, data) => {
     user.value = data;
   });
+};
+
+
+const form = reactive({
+  avatar: '',
+
+})
+
+// 上传图片
+const fileList = ref([]);
+const handleChange = file => {
+  if (file.status == "success") {
+    fileList.value = [];
+    fileList.value.push(file.response);
+    form.avatar = file.response.data;
+  }
+};
+// 删除
+const beforeRemove = () => {
+  const result = new Promise((resolve, reject) => {
+    ElMessageBox.confirm("此操作将删除该图片, 是否继续?", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    })
+        .then(() => {
+          resolve();
+          form.avatar = '';
+        })
+        .catch(() => {
+          reject(false);
+        });
+  });
+  return result;
+};
+
+const handleExceed = () => {
+  ElMessage("只能上传一张");
+}
+
+const previewDialogVisible = ref(false);  // 控制预览弹窗显示
+const previewImage = ref('');  // 存储预览的图片
+const previewTitle = ref('图片预览');  // 预览图片的标题
+
+const handlePictureCardPreview = (file) => {
+  // 获取点击的图片，并设置为预览图片
+  previewImage.value = file.url || URL.createObjectURL(file.raw);
+  previewDialogVisible.value = true; // 打开图片预览弹窗
+};
+const handleClosePreview = () => {
+  previewDialogVisible.value = false;
+};
+const beforeUpload = (file) => {
+  const isJpgOrPng = ['image/jpeg', 'image/png'].includes(file.type);
+  const isLt2M = file.size / 1024 / 1024 < 2; // 限制文件大小为 2MB
+
+  if (!isJpgOrPng) {
+    ElMessage.error('上传头像图片只能是 JPG 或 PNG 格式!');
+  }
+  if (!isLt2M) {
+    ElMessage.error('上传头像图片大小不能超过 2MB!');
+  }
+
+  return isJpgOrPng && isLt2M;  // 如果格式和大小都符合，返回 true 继续上传
+};
+
+
+const showReplyDialog = ref(false);
+const openReplyDialog = () => {
+  showReplyDialog.value = true; // 显示对话框
+};
+const closeReplyDialog = () => {
+  showReplyDialog.value = false; // 关闭对话框
+};
+const isImageUrl = (message) => {
+  return message.startsWith('http://47.93.187.154:8082/imgview/');
 };
 
 const fetchHistoryMessages = () => {
@@ -239,8 +374,8 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  height: 700px;
-  width: 600px;
+  height: 85vh;
+  width: 100%;
 
   display: flex;
   flex-direction: column;
@@ -320,6 +455,7 @@ onBeforeUnmount(() => {
   background: linear-gradient(135deg, #A1BEEE9B, #EEF6FF81);
   color: #333;
 }
+
 .me {
   font-size: 16px;
   color: #ffffff;
@@ -385,5 +521,104 @@ onBeforeUnmount(() => {
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+/* 回复对话框容器 */
+.reply-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* 对话框内容 */
+.dialog-content {
+  background: white;
+  border-radius: 12px;
+  width: 450px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 对话框头部 */
+.dialog-header {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e4e7ed;
+  margin-bottom: 15px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 对话框内容区域 */
+.dialog-body {
+  flex-grow: 1;
+  padding-bottom: 20px;
+}
+
+.upload-item {
+  margin-bottom: 0;
+}
+
+/* 按钮区域 */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* 取消按钮样式 */
+.cancel-btn {
+  background-color: #f4f6f8;
+  border: 1px solid #e4e7ed;
+  color: #B181C799;
+  border-radius: 25px;
+  padding: 8px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background-color: #e4f4ff;
+  border-color: #B181C799;
+}
+
+/* 提交按钮样式 */
+.submit-btn {
+  background-color: rgba(215, 158, 241, 0.6);
+  border: none;
+  color: #313131;
+  border-radius: 25px;
+  padding: 8px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+  background-color: #B181C799;
+  transform: translateY(-2px);
+}
+
+.message-image {
+  max-width: 300px;  /* 设置图片最大宽度 */
+  max-height: 200px; /* 设置图片最大高度 */
+  width: 100%;       /* 让图片根据容器宽度自适应 */
+  height: auto;      /* 保持图片的纵横比 */
+  border-radius: 8px;
+  margin-top: 10px;
 }
 </style>

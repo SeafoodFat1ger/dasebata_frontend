@@ -1,5 +1,5 @@
 <template>
-  <TopHeader />
+  <TopHeader/>
   <div class="post-container">
     <div class="post-details">
       <!-- 帖子标题和作者信息 -->
@@ -7,7 +7,7 @@
         <img @click="navigateTo"
              :src="postDetail.postAuthor.avatar"
              :alt="postDetail.postAuthor.name"
-             class="avatar" />
+             class="avatar"/>
         <div class="post-title">
           <h2>{{ postDetail.postTitle }}</h2>
           <p class="username">{{ postDetail?.postAuthor?.name }}</p>
@@ -21,7 +21,7 @@
       <div class="post-content">
         <div v-for="content in postDetail.postContents" :key="content.data">
           <div v-if="content.type === 'text'" v-html="content.data"></div>
-          <img v-if="content.type === 'image' && content.data !== 'null'" :src="content.data" alt="帖子图片" />
+          <img v-if="content.type === 'image' && content.data !== 'null'" :src="content.data" alt="帖子图片"/>
         </div>
         <p class="post-date">{{ postDetail?.postPublishDate }}</p>
       </div>
@@ -45,7 +45,9 @@
       <!-- 评论对话框 -->
       <div v-if="showReplyDialog" class="reply-dialog">
         <div class="dialog-content">
-          <textarea v-model="replyContent" placeholder="请输入评论内容" rows="4"></textarea>
+          <myEditor @update:content="updateContent"/>
+
+          <!--          <textarea v-model="replyContent" placeholder="请输入评论内容" rows="4"></textarea>-->
           <div class="dialog-actions">
             <button @click="closeReplyDialog" class="cancel-btn">取消</button>
             <button @click="submitReply" class="submit-btn">提交</button>
@@ -58,12 +60,12 @@
         <div v-for="(comment, index) in comments" :key="comment.cmtId" class="comment-card"
              :style="{ backgroundColor: getRandomColor(index) }">
           <div>
-            <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar" />
+            <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"/>
             <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
           </div>
 
           <div class="comment-content" style="flex-direction: column">
-            <p>{{ comment.cmtContent }}</p>
+            <div v-html="comment.cmtContent"></div>
             <div class="comment-date">{{ comment.cmtPublishDate }}</div>
           </div>
 
@@ -89,7 +91,9 @@ import 'element-plus/theme-chalk/el-icon.css';
 import {Star} from "@element-plus/icons-vue";
 import {useStore} from "@/stores/index.js";
 import router from "@/router/index.js";
-import user from "@element-plus/icons/lib/User.js"; // 引入图标样式
+import user from "@element-plus/icons/lib/User.js";// 引入图标样式
+import myEditor from "@/components/Editor.vue";
+
 const store = useStore();
 
 export default {
@@ -102,6 +106,7 @@ export default {
     }
   },
   components: {
+    myEditor,
     Message, Star,
     TopHeader,
   },
@@ -125,6 +130,9 @@ export default {
       return colors[index % colors.length];
     };
 
+    const updateContent = async (newContent) => {
+      replyContent.value = newContent; // 更新父组件的内容
+    };
 
     const comments = ref([]);
     const postAuthorId = ref();
@@ -148,9 +156,9 @@ export default {
             postId: postId,
             cmtId: cmtId,
           };
-          sendMsg("from管理员的信息: 【"+
-              cmtAuthor.name+"】同学你好，你在帖子标题为 \""+postDetail.value.postTitle+
-              "\"中的评论"+"\"" +content+ "\""+
+          sendMsg("from管理员的信息: 【" +
+              cmtAuthor.name + "】同学你好，你在帖子标题为 \"" + postDetail.value.postTitle +
+              "\"中的评论" + "\"" + content + "\"" +
               "已被管理员删除！", cmtAuthor.id);
           // 调用后端删除接口
           post(`/posts/deleteCmt/${cmtId}`, data, (message, data) => {
@@ -159,8 +167,7 @@ export default {
             comments.value = comments.value.filter(comment => comment.cmtId !== cmtId);
           });
         }
-      }
-      else {
+      } else {
         const confirmDelete = confirm("确定要删除这个评论吗?");
         if (confirmDelete) {
           const data = {
@@ -196,17 +203,16 @@ export default {
           const data = {
             postId: postId,
           };
-          sendMsg("from管理员的信息: 【"+
-              postDetail.value.postAuthor.name+"】同学你好，你的标题为 \""+postDetail.value.postTitle+
-          "\" 的帖子已被管理员删除！", postAuthorId.value);
+          sendMsg("from管理员的信息: 【" +
+              postDetail.value.postAuthor.name + "】同学你好，你的标题为 \"" + postDetail.value.postTitle +
+              "\" 的帖子已被管理员删除！", postAuthorId.value);
           // 调用后端删除接口
           post(`/posts/delete/${postId}`, data, (message, data) => {
             ElMessage.success("帖子删除成功，已告知该用户");
             router.push('/home/posts');
           });
         }
-      }
-      else {
+      } else {
         const confirmDelete = confirm("确定要删除这个帖子吗?");
         if (confirmDelete) {
           const data = {
@@ -290,14 +296,14 @@ export default {
       replyContent.value = ""; // 清空输入框内容
     };
 
-    const navigateTo=()=>{
+    const navigateTo = () => {
       router.push(`/home/profile/${postAuthorId.value}`);
     }
 
     return {
-      postId, postDetail, comments,userId,postAuthorId,
+      postId, postDetail, comments, userId, postAuthorId,
       deleteCmt,
-      showReplyDialog, replyContent,
+      showReplyDialog, replyContent,updateContent,
       fetchPostDetail,
       likePost, starPost,
       submitReply, openReplyDialog, closeReplyDialog,
@@ -319,6 +325,7 @@ export default {
   display: block; /* 确保图片为块级元素，便于控制 */
   max-width: 100%; /* 防止图片超出容器 */
 }
+
 body {
   font-family: 'Arial', sans-serif;
   background-color: #f9f9f9;
@@ -350,7 +357,7 @@ body {
   cursor: pointer;
   transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
   box-shadow 0.3s ease-in-out,
-  filter 0.3s ease-in-out;  /* 添加平滑过渡 */
+  filter 0.3s ease-in-out; /* 添加平滑过渡 */
 }
 
 .avatar:hover {
@@ -428,14 +435,14 @@ body {
 }
 
 .action-button:hover .icon {
-  transform: scale(1.2);  /* 鼠标悬停时图标放大 */
+  transform: scale(1.2); /* 鼠标悬停时图标放大 */
 }
 
 /* "点赞" 按钮被点击时的样式 */
 .action-button.liked {
-  border-color: red;  /* 当isLiked为true时，边框变为红色 */
-  background-color: rgba(255, 211, 211, 0.87);  /* 让背景色更清爽 */
-  color: red;  /* 改变文本和图标的颜色 */
+  border-color: red; /* 当isLiked为true时，边框变为红色 */
+  background-color: rgba(255, 211, 211, 0.87); /* 让背景色更清爽 */
+  color: red; /* 改变文本和图标的颜色 */
 }
 
 /* "收藏" 按钮 */
@@ -520,23 +527,24 @@ textarea {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);  /* 添加柔和的阴影 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 添加柔和的阴影 */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .comment-card:hover {
-  transform: translateY(-3px);  /* 上浮效果 */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);  /* 更深的阴影 */
+  transform: translateY(-3px); /* 上浮效果 */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* 更深的阴影 */
 }
 
 /* 评论头像 */
 .comment-avatar {
   width: 50px;
   height: 50px;
-  border-radius: 50%;  /* 圆形头像 */
+  border-radius: 50%; /* 圆形头像 */
   object-fit: cover;
-  border: 2px solid #464646;  /* 轻微的边框 */
+  border: 2px solid #464646; /* 轻微的边框 */
 }
+
 /* 评论作者 */
 .comment-author {
   font-size: 14px;
@@ -556,6 +564,7 @@ textarea {
 .comment-content {
   width: 800px;
 }
+
 /* 评论内容 */
 .comment-content p {
   font-size: 17px;
