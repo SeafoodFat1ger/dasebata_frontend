@@ -208,6 +208,7 @@ export default {
       get(`/posts/get/post/${areaId}/${pageNumber}/${currentPageSize.value}`, (message, data) => {
             posts.value = data.records
             total.value = data.total
+            console.log(posts.value);
           }
       )
     }

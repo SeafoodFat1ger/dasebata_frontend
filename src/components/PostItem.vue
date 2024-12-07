@@ -139,7 +139,8 @@ export default {
 }
 
 .post-item {
-  min-width: 400px;/*******************/
+  min-width: 300px;/*******************/
+  width: 500px;
   flex: 1 1 300px;  /* 让每个 PostItem 的宽度为 300px，且允许根据容器大小变化 */
   max-height: 300px;  /* 设置最大高度 */
   margin: 5px;  /* 设置间距 */
@@ -149,6 +150,7 @@ export default {
   overflow: hidden;  /* 防止内容溢出 */
   transition: transform 0.3s ease, box-shadow 0.3s ease;  /* 添加动画效果 */
   cursor: pointer;  /* 鼠标悬停时显示为可点击 */
+  max-width: 80%;
 }
 
 .post-item:hover {

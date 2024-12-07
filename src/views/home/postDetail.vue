@@ -4,7 +4,7 @@
     <div class="post-details">
       <!-- 帖子标题和作者信息 -->
       <div class="post-header">
-        <img @click="navigateTo"
+        <img @click="navigateTo(postAuthorId)"
              :src="postDetail.postAuthor.avatar"
              :alt="postDetail.postAuthor.name"
              class="avatar" />
@@ -34,7 +34,7 @@
         <button @click="starPost" class="action-button" :class="{'bookmarked': postDetail.isBookmarked}">
           <span class="icon">⭐️</span>收藏
         </button>
-        <button @click="openReplyDialog" class="action-button">
+        <button @click="replyByClick('楼主')" class="action-button">
           <span class="icon">✉️</span>评论
         </button>
         <button v-if="userId === 3 ||userId === postAuthorId" @click="deletePost" class="action-button delete">
@@ -48,7 +48,7 @@
           <textarea v-model="replyContent" placeholder="请输入评论内容" rows="4"></textarea>
           <div class="dialog-actions">
             <button @click="closeReplyDialog" class="cancel-btn">取消</button>
-            <button @click="submitReply" class="submit-btn">提交</button>
+            <button @click="submitReply()" class="submit-btn">提交</button>
           </div>
         </div>
       </div>
@@ -56,9 +56,11 @@
       <!-- 评论区 -->
       <div class="comments">
         <div v-for="(comment, index) in comments" :key="comment.cmtId" class="comment-card"
-             :style="{ backgroundColor: getRandomColor(index) }">
+             @click="replyByClick(comment.cmtAuthor.name)"
+             :style="{ backgroundColor: getRandomColor(userId) }">
           <div>
-            <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar" />
+            <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"
+                  @click="navigateTo(comment.cmtAuthor.id)"/>
             <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
           </div>
 
@@ -133,9 +135,18 @@ export default {
           (message, data) => {
             postDetail.value = data;           // 存储帖子数据
             comments.value = data.comments; // 存储评论数据
+            // 格式化日期
+            comments.value.forEach(comment => {
+              comment.cmtPublishDate = comment.cmtPublishDate.slice(0, 10) +
+                  ' ' + comment.cmtPublishDate.slice(11);
+            });
+            postDetail.value.postPublishDate=postDetail.value.postPublishDate.slice(0, 10)+
+                ' '+postDetail.value.postPublishDate.slice(11);
+
             postAuthorId.value = data.postAuthor.id;
+
+            console.log(postDetail.value);
           });
-      // console.log(comments.value);
     }
     fetchPostDetail(postId);
 
@@ -259,6 +270,13 @@ export default {
     /****** 关于评论框 ********/
     const showReplyDialog = ref(false);
     const replyContent = ref("");
+    const atWhom=ref('楼主');
+
+    /***回复别的评论（@）***/
+    const replyByClick = async (str) => {
+      atWhom.value=str;
+      openReplyDialog();
+    }
 
     const submitReply = async () => {
       if (replyContent.value.length === 0) {
@@ -268,7 +286,7 @@ export default {
       const replyData = {
         postId: postId,
         cmtAuthorId: userId,
-        content: replyContent.value,
+        content: "@"+atWhom.value+" "+replyContent.value,
       };
       console.log(replyData);
       post(`/posts/addCmt`, replyData,
@@ -290,8 +308,8 @@ export default {
       replyContent.value = ""; // 清空输入框内容
     };
 
-    const navigateTo=()=>{
-      router.push(`/home/profile/${postAuthorId.value}`);
+    const navigateTo=(to)=>{
+      router.push(`/home/profile/${to}`);
     }
 
     return {
@@ -300,7 +318,7 @@ export default {
       showReplyDialog, replyContent,
       fetchPostDetail,
       likePost, starPost,
-      submitReply, openReplyDialog, closeReplyDialog,
+      submitReply, openReplyDialog, closeReplyDialog,replyByClick,
       getRandomColor,
       deletePost,
       navigateTo,
@@ -389,7 +407,7 @@ body {
 
 .post-date {
   font-size: 14px;
-  color: #bbb;
+  color: #797979;
   margin-top: 20px;
   text-align: right;
 }
@@ -525,8 +543,8 @@ textarea {
 }
 
 .comment-card:hover {
-  transform: translateY(-3px);  /* 上浮效果 */
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);  /* 更深的阴影 */
+  cursor: pointer;
 }
 
 /* 评论头像 */
@@ -548,7 +566,7 @@ textarea {
 
 .comment-date {
   font-size: 12px;
-  color: #bbb;
+  color: #797979;
   /* 分别设置 top, right, bottom, left 的 padding */
   margin: 15px 20px 0px 5px;
 }

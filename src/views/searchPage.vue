@@ -19,7 +19,7 @@
         <!-- 问题部分 -->
         <div class="results-column">
           <h2>问题</h2>
-          <div class="result-section" v-if="problems.length === 0 && !loading">
+          <div v-if="problems.length === 0 && !loading">
             <p>没有找到相关问题</p>
           </div>
           <div v-else class="post-items-container">
@@ -30,21 +30,22 @@
         <!-- 帖子部分 -->
         <div class="results-column">
           <h2>帖子</h2>
-          <div class="result-section" v-if="posts.length === 0 && !loading">
+          <div v-if="posts.length === 0 && !loading">
             <p>没有找到相关帖子</p>
           </div>
           <div v-else class="post-items-container">
-            <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="false"/>
+            <PostItem v-for="post in posts" style="max-width: 100%;"
+                      :key="post.postId" :post="post" :needTag="false"/>
           </div>
         </div>
 
         <!-- 用户部分 -->
         <div class="results-column">
           <h2>用户</h2>
-          <div class="result-section" v-if="users.length === 0 && !loading">
+          <div v-if="users.length === 0 && !loading">
             <p>没有找到相关用户</p>
           </div>
-          <div v-else class="result-section">
+          <div v-else>
             <div v-for="item in users" :key="item.id" class="result-item">
               <el-card :body-style="{ padding: '20px' }" class="result-card" @click="goToDetail(item.id)">
                 <div class="card-content">
@@ -156,7 +157,7 @@ onMounted(() => {
 
 .results-columns {
   display: flex;
-  gap: 20px;
+  gap: 5px;
   justify-content: space-between;
   flex-wrap: wrap; /* 支持响应式布局 */
   max-width: 100%; /* 保证不会超出父容器 */
@@ -164,14 +165,15 @@ onMounted(() => {
 
 .results-column {
   flex: 1;
-  min-width: 280px;
+  min-width: 200px;
   background-color: #fff;
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 10px 20px 30px 15px;
   margin: 5px;
   transition: transform 0.3s ease;
-  gap: 10px;
+  gap: 5px;
+  max-width: 100%;
 }
 
 .results-column:hover {
@@ -198,6 +200,7 @@ h2 {
   padding: 5px;
   max-width: 100%; /* 保证不会超出父容器 */
   box-sizing: border-box;
+  margin: 10px 10px;
 }
 
 .result-item {
