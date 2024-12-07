@@ -1,5 +1,5 @@
 <template>
-  <TopHeader />
+  <TopHeader/>
   <div class="post-container">
     <div class="post-details">
       <!-- 帖子标题和作者信息 -->
@@ -34,7 +34,7 @@
         <button @click="starPost" class="action-button" :class="{'bookmarked': postDetail.isBookmarked}">
           <span class="icon">⭐️</span>收藏
         </button>
-        <button @click="replyByClick('楼主')" class="action-button">
+        <button @click="openReplyDialog" class="action-button">
           <span class="icon">✉️</span>评论
         </button>
         <button v-if="userId === 3 ||userId === postAuthorId" @click="deletePost" class="action-button delete">
@@ -45,7 +45,9 @@
       <!-- 评论对话框 -->
       <div v-if="showReplyDialog" class="reply-dialog">
         <div class="dialog-content">
-          <textarea v-model="replyContent" placeholder="请输入评论内容" rows="4"></textarea>
+          <myEditor @update:content="updateContent"/>
+
+          <!--          <textarea v-model="replyContent" placeholder="请输入评论内容" rows="4"></textarea>-->
           <div class="dialog-actions">
             <button @click="closeReplyDialog" class="cancel-btn">取消</button>
             <button @click="submitReply()" class="submit-btn">提交</button>
@@ -61,11 +63,12 @@
           <div>
             <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"
                   @click="navigateTo(comment.cmtAuthor.id)"/>
+            <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"/>
             <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
           </div>
 
           <div class="comment-content" style="flex-direction: column">
-            <p>{{ comment.cmtContent }}</p>
+            <div v-html="comment.cmtContent"></div>
             <div class="comment-date">{{ comment.cmtPublishDate }}</div>
           </div>
 
@@ -91,7 +94,9 @@ import 'element-plus/theme-chalk/el-icon.css';
 import {Star} from "@element-plus/icons-vue";
 import {useStore} from "@/stores/index.js";
 import router from "@/router/index.js";
-import user from "@element-plus/icons/lib/User.js"; // 引入图标样式
+import user from "@element-plus/icons/lib/User.js";// 引入图标样式
+import myEditor from "@/components/Editor.vue";
+
 const store = useStore();
 
 export default {
@@ -104,6 +109,7 @@ export default {
     }
   },
   components: {
+    myEditor,
     Message, Star,
     TopHeader,
   },
@@ -127,6 +133,9 @@ export default {
       return colors[index % colors.length];
     };
 
+    const updateContent = async (newContent) => {
+      replyContent.value = newContent; // 更新父组件的内容
+    };
 
     const comments = ref([]);
     const postAuthorId = ref();
@@ -147,6 +156,7 @@ export default {
 
             console.log(postDetail.value);
           });
+      // console.log(comments.value);
     }
     fetchPostDetail(postId);
 
@@ -159,9 +169,9 @@ export default {
             postId: postId,
             cmtId: cmtId,
           };
-          sendMsg("from管理员的信息: 【"+
-              cmtAuthor.name+"】同学你好，你在帖子标题为 \""+postDetail.value.postTitle+
-              "\"中的评论"+"\"" +content+ "\""+
+          sendMsg("from管理员的信息: 【" +
+              cmtAuthor.name + "】同学你好，你在帖子标题为 \"" + postDetail.value.postTitle +
+              "\"中的评论" + "\"" + content + "\"" +
               "已被管理员删除！", cmtAuthor.id);
           // 调用后端删除接口
           post(`/posts/deleteCmt/${cmtId}`, data, (message, data) => {
@@ -207,17 +217,16 @@ export default {
           const data = {
             postId: postId,
           };
-          sendMsg("from管理员的信息: 【"+
-              postDetail.value.postAuthor.name+"】同学你好，你的标题为 \""+postDetail.value.postTitle+
-          "\" 的帖子已被管理员删除！", postAuthorId.value);
+          sendMsg("from管理员的信息: 【" +
+              postDetail.value.postAuthor.name + "】同学你好，你的标题为 \"" + postDetail.value.postTitle +
+              "\" 的帖子已被管理员删除！", postAuthorId.value);
           // 调用后端删除接口
           post(`/posts/delete/${postId}`, data, (message, data) => {
             ElMessage.success("帖子删除成功，已告知该用户");
             router.push('/home/posts');
           });
         }
-      }
-      else {
+      } else {
         const confirmDelete = confirm("确定要删除这个帖子吗?");
         if (confirmDelete) {
           const data = {
@@ -313,9 +322,9 @@ export default {
     }
 
     return {
-      postId, postDetail, comments,userId,postAuthorId,
+      postId, postDetail, comments, userId, postAuthorId,
       deleteCmt,
-      showReplyDialog, replyContent,
+      showReplyDialog, replyContent,updateContent,
       fetchPostDetail,
       likePost, starPost,
       submitReply, openReplyDialog, closeReplyDialog,replyByClick,
@@ -337,6 +346,7 @@ export default {
   display: block; /* 确保图片为块级元素，便于控制 */
   max-width: 100%; /* 防止图片超出容器 */
 }
+
 body {
   font-family: 'Arial', sans-serif;
   background-color: #f9f9f9;
@@ -446,7 +456,7 @@ body {
 }
 
 .action-button:hover .icon {
-  transform: scale(1.2);  /* 鼠标悬停时图标放大 */
+  transform: scale(1.2); /* 鼠标悬停时图标放大 */
 }
 
 /* "点赞" 按钮被点击时的样式 */
@@ -555,6 +565,7 @@ textarea {
   object-fit: cover;
   border: 2px solid #464646;  /* 轻微的边框 */
 }
+
 /* 评论作者 */
 .comment-author {
   font-size: 14px;
@@ -574,6 +585,7 @@ textarea {
 .comment-content {
   width: 800px;
 }
+
 /* 评论内容 */
 .comment-content p {
   font-size: 17px;

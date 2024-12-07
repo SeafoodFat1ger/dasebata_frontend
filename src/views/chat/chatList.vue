@@ -3,21 +3,25 @@
     <div class="content">
       <!-- Search Bar -->
       <div class="contacts">
-        <input
+
+        <el-input
             v-model="searchQuery"
-            type="text"
-            placeholder="搜索联系人..."
-            class="search-input"
-            @focus="onFocus"
-            @blur="onBlur"
-        />
-        <h2>最近联系人</h2>
-        <div v-for="contact in filteredContacts" :key="contact.id" class="contact-card">
-          <div @click="gotoChat(contact.id)" class="contact-info"  >
+            :prefix-icon="Search"
+            placeholder="搜索帖子用户"
+            clearable
+            @clear="clearSearch"
+        >
+          <template #append>
+            <el-button @click="searchContacts">搜索</el-button>
+          </template>
+        </el-input>
+
+        <h2 v-if="searchQuery || !isSearch">最近联系人</h2>
+        <div v-for="contact in contacts" :key="contact.id" class="contact-card">
+          <div @click="gotoChat(contact.id)" class="contact-info">
             <el-avatar class="avatar" :src="contact.avatar"/>
             <div class="contact-details">
               <span class="contact-name">{{ contact.username }}</span>
-
             </div>
           </div>
         </div>
@@ -31,28 +35,45 @@
 
 <script setup>
 import {ref, computed, onMounted} from 'vue';
-import {get} from "@/net/index.js"
+import {get} from "@/net/index.js";
 import {useStore} from "@/stores/index.js";
-
-
-import { useRouter } from 'vue-router';
+import {useRouter} from 'vue-router';
+import {Search} from "@element-plus/icons-vue";
 
 const router = useRouter();
-
+const isSearch = ref(false);
 const contacts = ref([]);
 const searchQuery = ref('');
-const isSearchFocused = ref(false);
 const store = useStore();
 const myuser = store.auth.user;
+
 // 获取最近联系人数据
 const fetchContacts = async () => {
-  get(`/chats/findRelation/${myuser.id}`,
-      (message, data) => {
-        contacts.value = data;
-      }
-  )
+  get(`/chats/findRelation/${myuser.id}`, (message, data) => {
+    contacts.value = data;
+  });
 };
 
+// 搜索联系人
+const searchContacts = async () => {
+  isSearch.value = true;
+  if (searchQuery.value !== '') {
+    get(`/posts/find/user/${searchQuery.value}`, (message, data) => {
+      contacts.value = data.records;
+    });
+  }else {
+    contacts.value = [];
+  }
+};
+
+// 清空搜索框
+const clearSearch = () => {
+  searchQuery.value = '';
+  isSearch.value = false;
+  fetchContacts();
+};
+
+// 跳转到聊天页面
 const gotoChat = (id) => {
   router.push(`/home/chats/${id}`); // 路由跳转
 };
@@ -61,24 +82,6 @@ onMounted(() => {
   fetchContacts(); // 组件挂载后获取联系人
 });
 
-// Filter contacts based on the search query
-const filteredContacts = computed(() => {
-  return isSearchFocused.value || !searchQuery.value
-      ? contacts.value
-      : contacts.value.filter(contact =>
-          contact.username.includes(searchQuery.value)
-      );
-});
-
-// Handle search focus
-const onFocus = () => {
-  isSearchFocused.value = true;
-};
-
-// Handle search blur
-const onBlur = () => {
-  isSearchFocused.value = false;
-};
 </script>
 
 <style scoped>
@@ -88,6 +91,7 @@ const onBlur = () => {
   align-items: flex-start;
   gap: 20px;
   padding: 60px;
+  height: 85vh;
 }
 
 .search-box {
@@ -105,15 +109,27 @@ const onBlur = () => {
   transition: all 0.3s;
 }
 
-.search-input:focus {
-  border-color: #409eff;
-  box-shadow: 0 0 5px rgba(64, 158, 255, 0.5);
+.search-btn,
+.clear-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background-color: #409eff;
+  color: #fff;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.search-btn:hover,
+.clear-btn:hover {
+  background-color: #3389e3;
 }
 
 .content {
   display: flex;
   gap: 20px;
   width: 100%;
+  height: 100%;
   align-items: flex-start;
 }
 
@@ -125,6 +141,9 @@ const onBlur = () => {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  height: 100%; /* 高度占满容器 */
+  overflow-y: auto; /* 启用垂直滚动 */
+  padding-bottom: 10px; /* 确保有足够的底部空间来滚动 */
 }
 
 h2 {
