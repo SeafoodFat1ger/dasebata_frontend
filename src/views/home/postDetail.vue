@@ -46,8 +46,6 @@
       <div v-if="showReplyDialog" class="reply-dialog">
         <div class="dialog-content">
           <myEditor @update:content="updateContent"/>
-
-          <!--          <textarea v-model="replyContent" placeholder="请输入评论内容" rows="4"></textarea>-->
           <div class="dialog-actions">
             <button @click="closeReplyDialog" class="cancel-btn">取消</button>
             <button @click="submitReply()" class="submit-btn">提交</button>
@@ -63,7 +61,6 @@
           <div>
             <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"
                   @click="navigateTo(comment.cmtAuthor.id)"/>
-            <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"/>
             <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
           </div>
 
@@ -193,6 +190,7 @@ export default {
             ElMessage.success("评论删除成功！");
             // 删除本地的评论数据
             comments.value = comments.value.filter(comment => comment.cmtId !== cmtId);
+            showReplyDialog.value = false;
           });
         }
       }
@@ -339,7 +337,7 @@ export default {
 <style scoped>
 /* 全局样式 */
 .post-content img {
-  width: 80%;
+  width: 70%;
   height: auto; /* 保持图片的纵横比 */
   object-fit: cover; /* 保证图片在50%的宽度内不会变形 */
   margin: 10px 0; /* 添加一些上下边距来提高视觉效果 */
@@ -484,6 +482,7 @@ body {
 
 
 .reply-dialog {
+  padding-top: 30px;
   position: fixed;
   top: 0;
   left: 0;
@@ -496,7 +495,7 @@ body {
 }
 
 .dialog-content {
-  background-color: white;
+  background-color: #D6DDE5FF;
   padding: 20px;
   width: 80%;
   max-width: 600px;
@@ -559,6 +558,8 @@ textarea {
 
 /* 评论头像 */
 .comment-avatar {
+  margin-top: 10px;
+  margin-left: 10px;
   width: 50px;
   height: 50px;
   border-radius: 50%;  /* 圆形头像 */
@@ -573,26 +574,27 @@ textarea {
   color: #333;
   padding-left: 10px;
   margin-top: 0px;
+  margin-left: 10px;
 }
 
 .comment-date {
   font-size: 12px;
   color: #797979;
   /* 分别设置 top, right, bottom, left 的 padding */
-  margin: 15px 20px 0px 5px;
+  margin: 30px 20px 0px 0px;
 }
 
 .comment-content {
   width: 800px;
+  /* 分别设置 top, right, bottom, left 的 padding */
+  margin: 20px 10px 20px 20px;
 }
 
 /* 评论内容 */
 .comment-content p {
-  font-size: 17px;
+  font-size: 20px;
   color: #2d2d2d;
   line-height: 1.5;
-  /* 分别设置 top, right, bottom, left 的 padding */
-  margin: 20px 10px 10px 10px;
 }
 
 .delete-comment-btn {
