@@ -9,9 +9,9 @@
         <div class="last-login">
           最后一次登录时间：{{ formatLastLogin(user.lastLogin) }}
         </div>
-        <el-button v-if="userId == myuser.id" type="primary" class="edit-button" @click="editProfile">编辑个人资料
-        </el-button>
-        <el-button v-if="userId != myuser.id" type="primary" class="edit-button" @click="gotoChat">去私信</el-button>
+        <button v-if="userId == myuser.id" type="primary" class="edit-button" @click="editProfile">编辑个人资料
+        </button>
+        <button v-if="userId != myuser.id" type="primary" class="edit-button" @click="gotoChat">去私信</button>
 
       </div>
 
@@ -329,8 +329,33 @@ export default {
 }
 
 .edit-button {
+  padding: 10px 20px;
+  font-size: 10px;
+  color: white;
+  background: linear-gradient(145deg, #6e7dff, #599aff); /* 渐变背景 */
+  border: none;
+  border-radius: 30px; /* 圆角按钮 */
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 外阴影 */
+  transition: all 0.3s ease-in-out; /* 动画过渡 */
   width: 150px;
-  margin-top: 10px;
+}
+
+.edit-button:hover {
+  background: linear-gradient(145deg, #3f53d8, #6e7dff); /* 悬停时背景色反转 */
+  transform: scale(1.05); /* 放大效果 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* 悬停时增加阴影 */
+}
+
+.edit-button:active {
+  background: #4a63d8; /* 按下时的背景颜色 */
+  transform: scale(1); /* 按下时恢复大小 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* 按下时减少阴影 */
+}
+
+.edit-button:focus {
+  outline: none; /* 去掉聚焦时的默认边框 */
+  box-shadow: 0 0 5px 2px rgba(108, 124, 255, 0.5); /* 聚焦时的光圈效果 */
 }
 
 .content {

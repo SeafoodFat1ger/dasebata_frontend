@@ -99,7 +99,7 @@ export default {
 <style scoped>
 /* 基本布局优化 */
 .post-item {
-  min-width: 300px;/*******************/
+  min-width: 350px;/*******************/
   width: 500px;
   flex: 1 1 300px;  /* 让每个 PostItem 的宽度为 300px，且允许根据容器大小变化 */
   max-height: 300px;  /* 设置最大高度 */
@@ -111,7 +111,6 @@ export default {
   transition: transform 0.3s ease, box-shadow 0.3s ease;  /* 添加动画效果 */
   cursor: pointer;  /* 鼠标悬停时显示为可点击 */
   max-width: 80%;
-  min-height: 150px;
 }
 
 .post-item:hover {

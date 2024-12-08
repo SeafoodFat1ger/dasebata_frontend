@@ -175,13 +175,17 @@ export default {
 
     getRankCircleStyle(index) {
       // 根据排序的索引返回不同的背景颜色
-      if (index === 0) return { backgroundColor: 'red' };    // 第一名：红色
-      if (index === 1) return { backgroundColor: 'orange' }; // 第二名：橙色
-      if (index === 2) return { backgroundColor: 'yellow' }; // 第三名：黄色
-      return { backgroundColor: 'gray' };                    // 后续名次：灰色
+      if (index === 0) return { backgroundColor: 'rgba(255,119,120,0.82)' }; // 第一名：红色
+      if (index === 1) return { backgroundColor: 'rgba(255,136,0,0.69)' }; // 第二名：橙色
+      if (index === 2) return { backgroundColor: 'rgba(255,213,0,0.82)' }; // 第三名：黄色
+      if (index === 3) return { backgroundColor: 'rgba(144,238,144,0.82)' }; // 第四名：淡绿
+      if (index === 4) return { backgroundColor: 'rgba(140,255,255,0.82)' }; // 第五名：青色
+      if (index === 5) return { backgroundColor: 'rgba(135,206,235,0.82)' }; // 第六名：淡蓝色
+      if (index === 6) return { backgroundColor: 'rgba(238,130,238,0.82)' }; // 第七名：紫色
+      if (index === 7) return { backgroundColor: 'rgba(255,182,193,0.82)' }; // 第八名：淡粉色
+      if (index === 8) return { backgroundColor: 'rgba(255,105,180,0.82)' }; // 第九名：热粉色
+      if (index === 9) return { backgroundColor: 'rgba(255,20,147,0.82)' }; // 第十名：深粉色
     },
-
-
   },
   mounted() {
     this.fetchTopics();
@@ -281,44 +285,52 @@ export default {
 }
 
 .card {
+  padding-top: 10px;
+  width: 190px;
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
   background-color: #fff;
-  transition: box-shadow 0.3s;
+  transition: box-shadow 0.3s, transform 0.3s;
   margin-bottom: 10px;
-  width: 300px;
-  height: 100%;
+  height: 240px;
   display: inline-block;
   margin-right: 5px;
   flex-shrink: 0;
   cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card:hover {
   box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(5px);
 }
 
 .card-image {
   width: 100%;
   height: 150px;
   object-fit: cover;
+  border-bottom: 2px solid #eee;
 }
 
 .card-content {
-  padding: 16px;
+  padding: 0px;
   position: relative;
 }
 
 .card-title {
   font-size: 18px;
-  margin: 0 0 8px;
+  font-weight: bold;
+  color: #333;
+  padding-left: 10px;
+  padding-bottom: 0px;
 }
 
 .card-followers {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 16px;
+  font-size: 10px;
+  color: #888;
+  padding-left: 10px;
+  padding-bottom: 30px;
 }
 
 .favorite-btn {
@@ -392,13 +404,17 @@ export default {
 .question-item {
   display: flex;
   align-items: center;
-
-  font-size: 16px;
-  color: #666;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ddd;
+  padding: 12px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.question-item:hover {
+  background-color: #f1f1f1;
+  transform: translateX(5px);
 }
 
 .question-item:last-child {
@@ -414,11 +430,18 @@ export default {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  color: white;
+  font-size: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
   font-weight: bold;
-  margin-right: 12px;
+  margin-right: 15px;
+  transition: transform 0.3s ease;
 }
+
+.question-item:hover .rank-circle {
+  transform: scale(1.1);
+}
+
 </style>
