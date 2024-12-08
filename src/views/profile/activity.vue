@@ -1,6 +1,6 @@
 <template>
   <div class="posts-container" @scroll="handleScroll">
-    <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="false"/>
+    <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"/>
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="finished" class="finished">没有更多数据了</div>
   </div>

@@ -1,5 +1,5 @@
 <script>
-import {ChatLineSquare, Star} from "@element-plus/icons-vue";
+import { ChatLineSquare, Star } from "@element-plus/icons-vue";
 
 export default {
   components: {
@@ -16,21 +16,24 @@ export default {
       type: Boolean,
       required: true
     },
+    color: {
+      type: String,
+      default: '#edf2f8' // 默认颜色，如果没有传入颜色值
+    }
+  },
+  data() {
+    return {
+      isHovered: false // 用来标记是否悬停
+    };
   },
   methods: {
-    onMouseEnter(event) {
-      event.currentTarget.style.backgroundColor = '#e5f0ff';
-    },
-    onMouseLeave(event) {
-      event.currentTarget.style.backgroundColor = '';
-    },
     goToPost(id) {
-      this.$router.push(`/home/postDetail/${id}`); // 路由跳转
+      this.$router.push(`/home/postDetail/${id}`);
     },
     navigateToPage(tag) {
-      this.$router.push(`/home/tagDetail/${tag}`); // 路由跳转
+      this.$router.push(`/home/tagDetail/${tag}`);
     },
-     formatTime(dateString){
+    formatTime(dateString) {
       const date = new Date(dateString);
       const options = {
         year: 'numeric',
@@ -40,14 +43,11 @@ export default {
         minute: '2-digit',
         second: '2-digit',
       };
-      return date.toLocaleString('zh-CN', options); // 根据需求调整格式
+      return date.toLocaleString('zh-CN', options);
     },
-    //TODO
     goToUserProfile(userId) {
-      // 路由跳转到用户的个人资料页
       this.$router.push(`/home/profile/${userId}`);
-    },
-
+    }
   }
 }
 </script>
@@ -55,8 +55,9 @@ export default {
 <template>
   <div class="post-item" @click="goToPost(post.postId)">
     <el-card shadow="hover"
-             @mouseenter="onMouseEnter($event)" @mouseleave="onMouseLeave($event)"
-             class="post-card">
+             :style="{ backgroundColor: isHovered ? '#e5f0ff' : color }"
+             @mouseenter="isHovered = true"
+             @mouseleave="isHovered = false">
       <div class="post-header">
         <el-avatar :src="post.postAuthor.avatar"
                    @click.stop="goToUserProfile(post.postAuthor.id)"></el-avatar>
@@ -75,7 +76,6 @@ export default {
       <div class="post-footer">
         <div class="post-meta">{{ post.postAuthor.name }} 发布于 {{ formatTime(post.postPublishDate) }}</div>
       </div>
-
       <div class="post-actions">
         <div class="action-item">
           <el-button class="action-btn" @click="likePost" size="small">
@@ -97,47 +97,7 @@ export default {
 </template>
 
 <style scoped>
-.post-actions {
-  bottom: 20px;  /* 距离底部20px */
-  right: 5px;   /* 距离右边20px */
-  gap: 0px;  /* 每个按钮之间有15px间隔 */
-}
-
-.action-item {
-  display: flex;
-  align-items: center;
-  justify-content: right;
-  padding: 0;
-  margin: 0;
-}
-
-.action-btn {
-  background-color: #ebe2ff;
-  border: none;
-  color: #333;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  gap: 0px;
-  padding: 0px 6px;
-  border-radius: 20px;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.action-btn:hover {
-  background-color: #f5f5f5;  /* 悬停时背景色变化 */
-  color: #409EFF;  /* 悬停时文字颜色变化 */
-}
-
-.action-btn:active {
-  background-color: #e4e7ed;  /* 点击时背景色变化 */
-}
-
-.action-btn span {
-  font-size: 14px;
-  color: #666;
-}
-
+/* 基本布局优化 */
 .post-item {
   min-width: 300px;/*******************/
   width: 500px;
@@ -151,28 +111,18 @@ export default {
   transition: transform 0.3s ease, box-shadow 0.3s ease;  /* 添加动画效果 */
   cursor: pointer;  /* 鼠标悬停时显示为可点击 */
   max-width: 80%;
+  min-height: 150px;
 }
 
 .post-item:hover {
-  transform: translateY(-5px);  /* 鼠标悬停时向上浮动 */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);  /* 鼠标悬停时更明显的阴影 */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-.post-item img {
-  width: 100%;  /* 让图片宽度适应卡片 */
-  height: 200px;  /* 设置固定高度 */
-  object-fit: cover;  /* 保证图片裁剪不变形 */
-}
-
-.post-item .content {
-  padding: 0px;  /* 内边距 */
-}
-
-.post-item .description {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 15px;
+/* 卡片的内容样式 */
+.post-card {
+  border: none;
+  background-color: rgb(239, 244, 250);
 }
 
 .post-header {
@@ -190,45 +140,71 @@ export default {
   padding: 8px 10px;
 }
 
-.post-meta {
+.post-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
   color: #999;
-  font-size: 8px;
-  padding: 10px 20px 0px 0px;
+  padding: 10px 20px;
 }
 
 .post-content {
-  /* 分别设置 top, right, bottom, left 的 padding */
   padding: 10px 20px 10px 60px;
   font-size: 13px;
   color: #333;
 }
 
-.post-footer {
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-}
-
-.post-footer .el-icon {
-  margin-right: 5px;
-}
-
-.post-card {
-  border: none; /* 取消卡片的边框 */
-  background-color: rgb(239, 244, 250);
-}
-
 .custom-tag {
-  font-size: 7px;  /* 设置字体大小 */
-  padding: 3px 5px;  /* 设置内边距 */
-  border-radius: 7px;  /* 设置圆角 */
-  background-color: #f4fdf4;  /* 背景颜色 */
-  color: #4CAF50;  /* 文字颜色 */
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background-color: #f4fdf4;
+  color: #4CAF50;
   margin-left: 5px;
 }
+
 .custom-tag:hover {
   background-color: #e0f7fa;
   cursor: pointer;
 }
 
+/* 动作按钮样式优化 */
+.post-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 10px 15px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+}
+
+.action-btn {
+  background-color: #ebe2ff;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.action-btn:hover {
+  background-color: #f5f5f5;
+  color: #409EFF;
+}
+
+.action-btn:active {
+  background-color: #e4e7ed;
+}
+
+.action-btn span {
+  font-size: 14px;
+  color: #666;
+}
 </style>

@@ -31,14 +31,14 @@
         <el-tab-pane label="帖子" name="articles">
           <div style="display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 10px; padding: 10px;"
               @scroll="onScroll" ref="postList">
-            <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="false"/>
+            <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"/>
           </div>
         </el-tab-pane>
 
         <el-tab-pane label="提问" name="questions">
           <div style="display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 10px; padding: 10px;"
            @scroll="onScroll" ref="postList">
-            <PostItem v-for="post in questions" :key="post.postId" :post="post" :needTag="false"/>
+            <PostItem v-for="post in questions" :key="post.postId" :post="post" :needTag="true" :color="'rgba(228,231,255,0.82)'"/>
           </div>
         </el-tab-pane>
       </el-tabs>

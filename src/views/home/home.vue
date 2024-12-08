@@ -23,14 +23,9 @@
       >
         <div v-for="tag in tags" :key="tag.id" class="card">
           <img :src="tag.url" :alt="tag.tag" class="card-image"/>
-          <div class="card-content">
+          <div class="card-content" @click="navigateToTag(tag.tag)">
             <h3 class="card-title">{{ tag.tag }}</h3>
             <p class="card-followers">{{ tag.tagPersonNum }} 人关注</p>
-            <button class="favorite-btn" @click="navigateToTag(tag.tag)">
-              <el-icon>
-                <ArrowRight/>
-              </el-icon>
-            </button>
           </div>
         </div>
       </div>
@@ -264,13 +259,13 @@ export default {
 }
 
 .scroll_btn {
-  width: 50px;
+  width: 30px;
+  height: 30px;
   text-align: center;
-  font-size: 30px;
-  height: 50px;
+  font-size: 20px;
   border: none;
   border-radius: 50%;
-  background-color: #f5f5f5;
+  background-color: #d7e7fd;
   color: #666;
   cursor: pointer;
   display: flex;
@@ -297,6 +292,7 @@ export default {
   display: inline-block;
   margin-right: 5px;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .card:hover {

@@ -31,7 +31,7 @@ export default {
     });
 
     const toolbarConfig = {
-      excludeKeys: ["group-more-style", 'group-video', 'group-image']
+      excludeKeys: ["group-more-style", 'group-video', 'group-image', 'fullScreen']
     };
 
     const editorConfig = {placeholder: '请输入内容...'};

@@ -48,7 +48,7 @@
     <el-main>
       <div style="display: flex; justify-content: flex-start; flex-wrap: wrap;
            gap: 10px; padding: 10px;">
-        <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"/>
+        <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true" :color="'rgba(228,231,255,0.82)'"/>
       </div>
 
       <div style="display: flex; justify-content: center; margin-top: 20px;">
@@ -68,7 +68,7 @@
   </el-container>
 
   <!--rich text-->
-  <el-drawer v-model="drawer" size="80%" direction="btt" title="发布帖子">
+  <el-drawer v-model="drawer" size="80%" direction="btt" title="发布问题">
     <el-form :model="form">
       <el-form-item label="标题">
         <el-input v-model="form.postTitle" placeholder="请输入标题" autocomplete="off"/>
@@ -210,7 +210,7 @@ export default {
 
     // 获取帖子数据
     const fetchPosts = async (areaId = 0, pageNumber = 1) => {
-      get(`/posts/get/post/${areaId}/${pageNumber}/${currentPageSize.value}`, (message, data) => {
+      get(`/posts/get/problem/${areaId}/${pageNumber}/${currentPageSize.value}`, (message, data) => {
             posts.value = data.records
             total.value = data.total
             console.log(posts.value);
@@ -227,13 +227,14 @@ export default {
       const confirmDelete = confirm("尊敬的管理员您好，您将要发布的公告会通知所有用户~");
       if (confirmDelete) {
         isNoticePost.value = true;
+        isNoticePost.value = true;
         drawer.value = true;
       }
     }
 
     const submitPost = async () => {
       if (!form.postTitle || !form.postArea || !form.postContent ) {
-        ElMessage.warning("请填写完整帖子信息")
+        ElMessage.warning("请填写完整问题信息")
         return
       }
 

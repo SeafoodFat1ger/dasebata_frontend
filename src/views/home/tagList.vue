@@ -3,8 +3,8 @@
     <div v-for="tag in tags" :key="tag.id" class="card" @click="navigateToTag(tag.tag)">
       <img :src="tag.url" :alt="tag.tag" class="card-image"/>
       <div class="card-content">
-        <h3 class="card-title">{{ tag.tag }}</h3>
         <p class="card-followers">{{ tag.tagPersonNum }} 人关注</p>
+        <h3 class="card-title">{{ tag.tag }}</h3>
         <!-- 圆形收藏按钮 -->
         <button
             class="favorite-btn"
@@ -48,20 +48,16 @@ export default {
     // 获取数据方法
     async fetchTopics() {
       if (this.loading || this.finished) return;
-
       this.loading = true;
-
       get(`/posts/getAllTags/${userId}/${this.currentPage}/${this.pageSize}`, (message, data) => {
         this.tags.push(...data.records); // 将新数据追加到现有数组
         this.total = data.total;
-
         // 判断是否已经加载完所有数据
         if (this.tags.length >= this.total) {
           this.finished = true;
         } else {
           this.currentPage += 1; // 更新页码
         }
-
         this.loading = false;
       });
     },
@@ -88,6 +84,7 @@ export default {
             },
             (message) => {
               ElMessage.success(message)
+              tag.tagPersonNum++;
             }
         )
       }else {
@@ -98,6 +95,7 @@ export default {
             },
             (message) => {
               ElMessage.success(message)
+              tag.tagPersonNum--;
             }
         )
       }
@@ -111,72 +109,76 @@ export default {
 
 <style scoped>
 .card-container {
-  padding: 60px;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
+  padding-top: 60px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
   overflow-y: auto;
-  max-height: 80vh; /* 设置最大高度，确保容器可以滚动 */
-  position: relative;
+  max-height: 80vh;
 }
 
 .card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background-color: rgba(229, 227, 227, 0.38);
+  width: 250px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  background-color: #fff;
-  transition: box-shadow 0.3s;
-  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  text-align: center;
 }
 
 .card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
 .card-image {
   width: 100%;
-  height: 150px;
+  height: 200px;
   object-fit: cover;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
 }
 
 .card-content {
-  padding: 16px;
-  position: relative;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;  /* 文字和按钮分开，左边文字，右边按钮 */
+  align-items: center;  /* 垂直居中对齐 */
 }
 
 .card-title {
-  font-size: 18px;
-  margin: 0 0 8px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+  margin-right: 15px;
 }
 
 .card-followers {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: #888;
 }
 
 .favorite-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 50%;
-  background-color: #f5f5f5;
-  color: #666;
+  background-color: transparent;
+  border: 2px solid rgba(79, 64, 17, 0.58);
+  font-size: 1.5rem;
+  color: #ffcc00;
   cursor: pointer;
+  transition: color 0.3s ease;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s, color 0.3s;
 }
 
-.favorite-btn:hover {
-  background-color: rgba(255, 239, 194, 0.75);
-  color: #735800;
-  border-color: #ffc71c;
+.favorite-btn:focus {
+  outline: none;
 }
 
 .favorite-btn.focused {
@@ -185,12 +187,29 @@ export default {
   border-color: #735400;
 }
 
-.loading,
-.finished {
-  grid-column: span 5;
-  text-align: center;
-  font-size: 16px;
-  color: #999;
-  padding: 16px;
+.favorite-btn .icon {
+  display: inline-block;
+  transition: transform 0.3s ease;
 }
+
+.favorite-btn:hover .icon {
+  transform: scale(1.2);
+}
+
+.loading, .finished {
+  text-align: center;
+  width: 100%;
+  font-size: 1.2rem;
+  color: #888;
+  margin-top: 20px;
+}
+
+.loading {
+  color: #888;
+}
+
+.finished {
+  color: #888;
+}
+
 </style>
