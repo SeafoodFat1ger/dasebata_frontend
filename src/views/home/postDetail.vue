@@ -175,6 +175,7 @@ export default {
             ElMessage.success("评论删除成功！已通知该用户~");
             // 删除本地的评论数据
             comments.value = comments.value.filter(comment => comment.cmtId !== cmtId);
+            showReplyDialog.value = false;
           });
         }
       }

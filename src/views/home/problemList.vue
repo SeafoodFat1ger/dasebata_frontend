@@ -7,7 +7,7 @@
           class="action-btn"
           @click="drawer = true"
       >
-        发起帖子
+        发起问题
       </el-button>
 
       <el-button
@@ -237,26 +237,20 @@ export default {
         ElMessage.warning("请填写完整问题信息")
         return
       }
-
       if(!form.avatar){
-        //form.avatar = 'http://47.93.187.154:8082/imgview/1733126975372tmp.png';
         form.avatar='null';
       }
-
       if (tags.value.length > 5) {
         ElMessage.warning("话题数不能多于5个");
         return;
       }
-
       const userId = store.auth.user.id;
-
-      //TODO 图片上传！！
       const requestData = {
         "userId": userId,
         "postTitle": form.postTitle,
         "postArea": form.postArea,
         "postTags": tags.value,
-        "postType": "post",
+        "postType": "problem",
         "postContents": [
           {
             "type": "text",
@@ -269,13 +263,13 @@ export default {
         ]
       }
       let pid = 0;
+      console.log(requestData);
       post(`/posts/add`, requestData,
           (message, data) => {
             ElMessage.success(message)
             drawer.value = false;
             fetchPosts(activeArea.value, 1);
             pid=data;
-
             if (isNoticePost.value) {
               // 将信息发给所有人
               const reqData = {
