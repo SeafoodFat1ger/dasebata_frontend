@@ -7,11 +7,14 @@
         <img @click="navigateTo(postAuthorId)"
              :src="postDetail.postAuthor.avatar"
              :alt="postDetail.postAuthor.name"
-             class="avatar" />
+             class="avatar"/>
         <div class="post-title">
           <h2>{{ postDetail.postTitle }}</h2>
           <p class="username">{{ postDetail?.postAuthor?.name }}</p>
         </div>
+        <button @click.stop="openJuDialog('user')" class="action-button delete">
+          <span class="icon">⚠️</span>举报
+        </button>
       </div>
 
       <!-- 灰色分割线 -->
@@ -21,59 +24,98 @@
       <div class="post-content">
         <div v-for="content in postDetail.postContents" :key="content.data">
           <div v-if="content.type === 'text'" v-html="content.data"></div>
-          <img v-if="content.type === 'image' && content.data !== 'null'" :src="content.data" alt="帖子图片" />
+          <img v-if="content.type === 'image' && content.data !== 'null'" :src="content.data" alt="帖子图片"/>
         </div>
         <p class="post-date">{{ postDetail?.postPublishDate }}</p>
       </div>
 
-      <!-- 点赞、收藏、评论按钮 -->
-      <div class="actions">
-        <button @click="likePost" class="action-button" :class="{'liked': postDetail.isLiked}">
-          <span class="icon">❤️</span>点赞
-        </button>
-        <button @click="starPost" class="action-button" :class="{'bookmarked': postDetail.isBookmarked}">
-          <span class="icon">⭐️</span>收藏
-        </button>
-        <button @click="openReplyDialog" class="action-button">
-          <span class="icon">✉️</span>评论
-        </button>
-        <button v-if="userId === 3 ||userId === postAuthorId" @click="deletePost" class="action-button delete">
-          <span class="icon">❌</span>删帖
-        </button>
-      </div>
+      <div v-if="!wuxiaoPost">
 
-      <!-- 评论对话框 -->
-      <div v-if="showReplyDialog" class="reply-dialog">
-        <div class="dialog-content">
-          <myEditor @update:content="updateContent"/>
-          <div class="dialog-actions">
-            <button @click="closeReplyDialog" class="cancel-btn">取消</button>
-            <button @click="submitReply()" class="submit-btn">提交</button>
+        <!-- 点赞、收藏、评论按钮 -->
+        <div class="actions">
+          <button @click="likePost" class="action-button" :class="{'liked': postDetail.isLiked}">
+            <span class="icon">❤️</span>点赞
+          </button>
+          <button @click="starPost" class="action-button" :class="{'bookmarked': postDetail.isBookmarked}">
+            <span class="icon">⭐️</span>收藏
+          </button>
+          <button @click="openReplyDialog" class="action-button">
+            <span class="icon">✉️</span>评论
+          </button>
+          <button @click="openJuDialog('post')" class="action-button delete">
+            <span class="icon">⚠️</span>举报
+          </button>
+          <button v-if="userId === 3 ||userId === postAuthorId" @click="deletePost" class="action-button delete">
+            <span class="icon">❌</span>删帖
+          </button>
+        </div>
+
+        <!-- 评论对话框 -->
+        <div v-if="showReplyDialog" class="reply-dialog">
+          <div class="dialog-content">
+            <myEditor @update:content="updateContent"/>
+            <div class="dialog-actions">
+              <button @click="closeReplyDialog" class="cancel-btn">取消</button>
+              <button @click="submitReply()" class="submit-btn">提交</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 评论区 -->
-      <div class="comments">
-        <div v-for="(comment, index) in comments" :key="comment.cmtId" class="comment-card"
-             @click="replyByClick(comment.cmtAuthor.name)"
-             :style="{ backgroundColor: getRandomColor(userId) }">
-          <div>
-            <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"
-                  @click="navigateTo(comment.cmtAuthor.id)"/>
-            <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
+        <!--举报-->
+        <div v-if="showJuDialog" class="reply-dialog">
+          <div class="dialog-content">
+            <el-form :model="form">
+              <el-form-item label="举报对象">
+                <el-tag>{{ form.reportType }}</el-tag>
+              </el-form-item>
+              <el-form-item label="举报原因">
+                <el-select
+                    v-model="form.reason"
+                    placeholder="请选择"
+                >
+                  <el-option label="血腥暴力" value="1"/>
+                  <el-option label="低俗色情" value="2"/>
+                  <el-option label="造谣生事" value="3"/>
+                  <el-option label="恶意攻击" value="4"/>
+                  <el-option label="垃圾信息" value="5"/>
+                </el-select>
+              </el-form-item>
+            </el-form>
+
+            <myEditor @update:content="updateJuContent"/>
+
+            <div class="dialog-actions">
+              <button @click="closeJuDialog" class="cancel-btn">取消</button>
+              <button @click="submitJu" class="submit-btn">提交</button>
+            </div>
           </div>
+        </div>
 
-          <div class="comment-content" style="flex-direction: column">
-            <div v-html="comment.cmtContent"></div>
-            <div class="comment-date">{{ comment.cmtPublishDate }}</div>
+        <!-- 评论区 -->
+        <div class="comments">
+          <div v-for="(comment, index) in comments" :key="comment.cmtId" class="comment-card"
+               @click="replyByClick(comment.cmtAuthor.name)"
+               :style="{ backgroundColor: getRandomColor(userId) }">
+            <div>
+              <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"
+                   @click.stop="navigateTo(comment.cmtAuthor.id)"/>
+              <p class="comment-author">{{ comment.cmtAuthor.name }}</p>
+            </div>
+
+            <div class="comment-content" style="flex-direction: column">
+              <div v-html="comment.cmtContent"></div>
+              <div class="comment-date">{{ comment.cmtPublishDate }}</div>
+            </div>
+
+            <button @click.stop="openJuDialog('comment')" class="delete-comment-btn">
+              <span class="icon">⚠️</span>
+            </button>
+            <!-- 删除按钮 -->
+            <button v-if="userId === 3 || comment.cmtAuthor.id === userId"
+                    @click.stop="deleteCmt(comment.cmtId, comment.cmtContent, comment.cmtAuthor)" class="delete-comment-btn">
+              删除
+            </button>
           </div>
-
-          <!-- 删除按钮 -->
-          <button v-if="userId === 3 || comment.cmtAuthor.id === userId"
-                  @click="deleteCmt(comment.cmtId, comment.cmtContent, comment.cmtAuthor)" class="delete-comment-btn">
-            删除
-          </button>
         </div>
       </div>
     </div>
@@ -84,8 +126,8 @@
 import TopHeader from "@/views/TopHeader.vue";
 import {Message} from "@element-plus/icons";
 import {post, get} from '@/net';
-import {ref} from "vue";
-import {ElMessage} from "element-plus";
+import {reactive, ref} from "vue";
+import {ElMessage, ElTag} from "element-plus";
 import {useRoute} from "vue-router";
 import 'element-plus/theme-chalk/el-icon.css';
 import {Star} from "@element-plus/icons-vue";
@@ -106,13 +148,20 @@ export default {
     }
   },
   components: {
+    ElTag,
     myEditor,
     Message, Star,
     TopHeader,
   },
   setup() {
-    const route = useRoute(); // 使用 useRoute 钩子获取路由信息
+    const form = reactive({
+      reportType: 'post',
+      reason:'',
+      message:'',
+    })
 
+    const route = useRoute(); // 使用 useRoute 钩子获取路由信息
+    const wuxiaoPost = ref(false);
     const userId = store.auth.user.id;
     const postId = route.params.id; // 获取帖子 ID
     const postDetail = ref({});
@@ -134,8 +183,48 @@ export default {
       replyContent.value = newContent; // 更新父组件的内容
     };
 
+    const updateJuContent = async (newContent) => {
+      form.message = newContent; // 更新父组件的内容
+    };
+
     const comments = ref([]);
     const postAuthorId = ref();
+
+
+    const error = () => {
+      wuxiaoPost.value = true;
+      console.log(111)
+      postDetail.value = {
+        "postId": 1,
+        "postTitle": "帖子不存在",
+        "postAuthor": {
+          "avatar": "http://47.93.187.154:8082/imgview/1733124215413lc.jpg",
+          "name": "root",
+          "id": 3
+        },
+        "postPublishDate": "2024-11-16T17:16:36",
+        "postTags": [],
+        "postCommentNum": 0,
+        "postLikeNum": 0,
+        "postBookmarkNum": 0,
+        "isLiked": false,
+        "isBookmarked": false,
+        "postContents": [
+          {
+            "type": "text",
+            "data": "<p>你来到了没有知识的荒原</p>"
+          },
+          {
+            "type": "image",
+            "data": "http://47.93.187.154:8082/imgview/1733674414290error.png"
+          }
+        ],
+        "comments": []
+      }
+
+    }
+
+
     const fetchPostDetail = async (postId) => {
       get(`/posts/getID/${postId}/${userId}`,
           (message, data) => {
@@ -146,16 +235,18 @@ export default {
               comment.cmtPublishDate = comment.cmtPublishDate.slice(0, 10) +
                   ' ' + comment.cmtPublishDate.slice(11);
             });
-            postDetail.value.postPublishDate=postDetail.value.postPublishDate.slice(0, 10)+
-                ' '+postDetail.value.postPublishDate.slice(11);
+            postDetail.value.postPublishDate = postDetail.value.postPublishDate.slice(0, 10) +
+                ' ' + postDetail.value.postPublishDate.slice(11);
 
             postAuthorId.value = data.postAuthor.id;
 
             console.log(postDetail.value);
-          });
+          }, error, error
+      );
       // console.log(comments.value);
     }
     fetchPostDetail(postId);
+
 
     /** 删评论 ***/
     const deleteCmt = (cmtId, content, cmtAuthor) => {
@@ -178,8 +269,7 @@ export default {
             showReplyDialog.value = false;
           });
         }
-      }
-      else {
+      } else {
         const confirmDelete = confirm("确定要删除这个评论吗?");
         if (confirmDelete) {
           const data = {
@@ -278,12 +368,33 @@ export default {
     /****** 关于评论框 ********/
     const showReplyDialog = ref(false);
     const replyContent = ref("");
-    const atWhom=ref('楼主');
+    const atWhom = ref('楼主');
 
     /***回复别的评论（@）***/
     const replyByClick = async (str) => {
-      atWhom.value=str;
+      atWhom.value = str;
       openReplyDialog();
+    }
+
+    const submitJu = async () => {
+      if (form.message==='') {
+        ElMessage.warning("评论内容不能为空");
+        return;
+      }
+      const replyData = {
+        reportType: form.reportType,
+        reason: form.reason,
+        message:form.message,
+        userId:userId,
+        targetId:postAuthorId.value,
+      };
+      console.log(replyData);
+      post(`/posts/addReport`, replyData,
+          (message, data) => {
+            ElMessage.success("举报成功");
+            closeJuDialog(); // 关闭对话框
+          }
+      )
     }
 
     const submitReply = async () => {
@@ -294,7 +405,7 @@ export default {
       const replyData = {
         postId: postId,
         cmtAuthorId: userId,
-        content: "@"+atWhom.value+" "+replyContent.value,
+        content: "@" + atWhom.value + " " + replyContent.value,
       };
       console.log(replyData);
       post(`/posts/addCmt`, replyData,
@@ -311,22 +422,38 @@ export default {
       showReplyDialog.value = true; // 显示对话框
       replyContent.value = ""; // 清空之前的内容
     };
+
+
+    const showJuDialog = ref(false)
+    const openJuDialog = (reportType) => {
+      form.reportType=reportType
+      showJuDialog.value = true; // 显示对话框
+    };
+    const closeJuDialog = () => {
+      showJuDialog.value = false; // 关闭对话框
+    };
+
     const closeReplyDialog = () => {
       showReplyDialog.value = false; // 关闭对话框
       replyContent.value = ""; // 清空输入框内容
     };
 
-    const navigateTo=(to)=>{
+    const navigateTo = (to) => {
+      if (wuxiaoPost.value) {
+        return
+      }
       router.push(`/home/profile/${to}`);
     }
 
     return {
+      wuxiaoPost, form,
       postId, postDetail, comments, userId, postAuthorId,
       deleteCmt,
-      showReplyDialog, replyContent,updateContent,
+      showReplyDialog, replyContent, updateContent,
       fetchPostDetail,
       likePost, starPost,
-      submitReply, openReplyDialog, closeReplyDialog,replyByClick,
+      submitReply, openReplyDialog, closeReplyDialog, replyByClick,
+      closeJuDialog, openJuDialog, showJuDialog,updateJuContent,submitJu,
       getRandomColor,
       deletePost,
       navigateTo,
@@ -377,7 +504,7 @@ body {
   cursor: pointer;
   transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
   box-shadow 0.3s ease-in-out,
-  filter 0.3s ease-in-out;  /* 添加平滑过渡 */
+  filter 0.3s ease-in-out; /* 添加平滑过渡 */
 }
 
 .avatar:hover {
@@ -460,9 +587,9 @@ body {
 
 /* "点赞" 按钮被点击时的样式 */
 .action-button.liked {
-  border-color: red;  /* 当isLiked为true时，边框变为红色 */
-  background-color: rgba(255, 211, 211, 0.87);  /* 让背景色更清爽 */
-  color: red;  /* 改变文本和图标的颜色 */
+  border-color: red; /* 当isLiked为true时，边框变为红色 */
+  background-color: rgba(255, 211, 211, 0.87); /* 让背景色更清爽 */
+  color: red; /* 改变文本和图标的颜色 */
 }
 
 /* "收藏" 按钮 */
@@ -548,12 +675,12 @@ textarea {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);  /* 添加柔和的阴影 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 添加柔和的阴影 */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .comment-card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);  /* 更深的阴影 */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* 更深的阴影 */
   cursor: pointer;
 }
 
@@ -563,9 +690,9 @@ textarea {
   margin-left: 10px;
   width: 50px;
   height: 50px;
-  border-radius: 50%;  /* 圆形头像 */
+  border-radius: 50%; /* 圆形头像 */
   object-fit: cover;
-  border: 2px solid #464646;  /* 轻微的边框 */
+  border: 2px solid #464646; /* 轻微的边框 */
 }
 
 /* 评论作者 */

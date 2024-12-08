@@ -78,15 +78,15 @@ export default {
       </div>
       <div class="post-actions">
         <div class="action-item">
-          <el-button class="action-btn" @click="likePost" size="small">
+          <el-button class="action-btn" size="small">
             <span>❤️</span>
             <span>{{ post.postLikeNum }}</span>
           </el-button>
-          <el-button class="action-btn" @click="favoritePost" size="small">
+          <el-button class="action-btn"  size="small">
             <span role="img" aria-label="star">⭐</span>
             <span>{{ post.postBookmarkNum }}</span>
           </el-button>
-          <el-button class="action-btn" @click="commentPost" size="small">
+          <el-button class="action-btn" size="small">
             <span role="img" aria-label="comment">💬</span>
             <span>{{ post.postCommentNum }}</span>
           </el-button>

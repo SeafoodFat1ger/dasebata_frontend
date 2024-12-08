@@ -21,6 +21,29 @@ const router = createRouter({ // 创建路由实例
                 },
             ]
         },
+        {
+            path: '/admin',
+            name: 'admin',
+            component: () => import('../views/admin/admin.vue'),
+            children: [
+                {
+                    path: 'jubao',
+                    name: 'jubao',
+                    component: () => import('../views/admin/jubao.vue'),
+                },
+                {
+                    path: 'post',
+                    name: 'postAdmin',
+                    component: () => import('../views/admin/post.vue'),
+                },
+                {
+                    path: 'profile/:userId',
+                    name: 'profile1',
+                    component: () => import('../views/home/profile.vue'),
+
+                },
+            ]
+        },
         // 首页/home 及其子路由
         {
             path: '/home',
@@ -41,7 +64,7 @@ const router = createRouter({ // 创建路由实例
                     path: 'chats',
                     name: 'chats',
                     component: () => import('../views/chat/chatList.vue'),
-                    children:[
+                    children: [
                         {
                             path: ':userId',
                             component: () => import('../views/chat/chatWindow.vue'),
@@ -54,15 +77,16 @@ const router = createRouter({ // 创建路由实例
                     component: () => import('../views/home/postList.vue'),
                 },
                 {
-                    path: 'problems',
-                    name: 'problems',
-                    component: () => import('../views/home/problemList.vue'),
-                },
-                {
                     path: 'tags',
                     name: 'tags',
                     component: () => import('../views/home/tagList.vue'),
                 },
+                // 新增帖子详情(postDetail)
+                // {
+                //   path: 'postDetail/:id',
+                //   name: 'PostDetail',
+                //   component: () => import('../views/home/postDetail.vue')
+                // },
                 {
                     path: 'profile/:userId',
                     name: 'profile',
@@ -119,7 +143,10 @@ router.beforeEach((to, from, next) => {
     // 检查用户是否已登录
     if (!user && to.name !== 'login' && to.name !== 'register') {
         // 如果用户未登录，且试图访问需要登录的页面，重定向到登录页面
-        next({ name: 'login' });
+        next({name: 'login'});
+    } else if (to.name === 'admin' && user && user.id !== 3) {
+        // 如果访问的是/admin页面且用户的id不是3，重定向到首页或其他页面
+        next({name: 'home'});
     } else {
         // 如果用户已登录或访问的是不需要登录的页面，继续访问
         next();

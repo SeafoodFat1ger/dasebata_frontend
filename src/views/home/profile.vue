@@ -11,8 +11,12 @@
         </div>
         <button v-if="userId == myuser.id" type="primary" class="edit-button" @click="editProfile">编辑个人资料
         </button>
-        <button v-if="userId != myuser.id" type="primary" class="edit-button" @click="gotoChat">去私信</button>
-
+        <div class="action-buttons">
+          <button v-if="userId != myuser.id" type="primary" class="edit-button" @click="gotoChat">去私信</button>
+          <button v-if="userId != myuser.id" @click="openJuDialog('user')" class="edit-button">
+            <span class="icon">⚠️</span>举报
+          </button>
+        </div>
       </div>
 
       <!-- 头像部分 -->
@@ -40,16 +44,16 @@
     <el-dialog title="编辑个人资料" v-model="dialogVisible" width="600px">
       <el-form :model="form" label-width="80px">
         <el-form-item label="用户名">
-          <el-input v-model="form.username"  type="text" placeholder="请输入用户名"></el-input>
+          <el-input v-model="form.username" type="text" placeholder="请输入用户名"></el-input>
         </el-form-item>
         <el-form-item label="邮箱">
-          <el-input v-model="form.email" type="text"  placeholder="请输入邮箱"></el-input>
+          <el-input v-model="form.email" type="text" placeholder="请输入邮箱"></el-input>
         </el-form-item>
         <el-form-item label="简介">
-          <el-input v-model="form.profile" type="text"  placeholder="请输入简介"></el-input>
+          <el-input v-model="form.profile" type="text" placeholder="请输入简介"></el-input>
         </el-form-item>
         <el-form-item label="密码">
-          <el-input v-model="form.password" type="password"  placeholder="请输入密码"></el-input>
+          <el-input v-model="form.password" type="password" placeholder="请输入密码"></el-input>
         </el-form-item>
         <el-form-item label="头像">
           <el-upload
@@ -92,6 +96,35 @@
 
     <!-- 页面内容 -->
     <el-main>
+      <!--举报-->
+      <div v-if="showJuDialog" class="reply-dialog">
+        <div class="dialog-content">
+          <el-form :model="form1">
+            <el-form-item label="举报对象">
+              <el-tag>{{ form1.reportType }}</el-tag>
+            </el-form-item>
+            <el-form-item label="举报原因">
+              <el-select
+                  v-model="form1.reason"
+                  placeholder="请选择"
+              >
+                <el-option label="血腥暴力" value="1"/>
+                <el-option label="低俗色情" value="2"/>
+                <el-option label="造谣生事" value="3"/>
+                <el-option label="恶意攻击" value="4"/>
+                <el-option label="垃圾信息" value="5"/>
+              </el-select>
+            </el-form-item>
+          </el-form>
+
+          <myEditor @update:content="updateJuContent"/>
+
+          <div class="dialog-actions">
+            <button @click="closeJuDialog" class="cancel-btn">取消</button>
+            <button @click="submitJu" class="submit-btn">提交</button>
+          </div>
+        </div>
+      </div>
       <router-view></router-view>
     </el-main>
   </el-container>
@@ -102,13 +135,15 @@ import {useStore} from "@/stores";
 import {reactive, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {get, post} from "@/net/index.js";
-import {ElMessage, ElMessageBox} from "element-plus";
+import {ElMessage, ElMessageBox, ElTag} from "element-plus";
 import {Plus} from '@element-plus/icons-vue'
 import message from "@element-plus/icons/lib/Message.js";
 import router from "@/router/index.js";
+import myEditor from "@/components/Editor.vue";
 
 const store = useStore();
 export default {
+  components: {ElTag, myEditor},
   setup() {
     const route = useRoute();
     const userId = route.params.userId; // 获取当前用户的ID
@@ -195,8 +230,8 @@ export default {
       username: '',
       email: '',
       avatar: '',
-      profile:'',
-      password:'',
+      profile: '',
+      password: '',
     });
 
     const formatLastLogin = (dateString) => {
@@ -217,7 +252,7 @@ export default {
     };
 
     const saveProfile = () => {
-      if(!form.profile || !form.password || !form.email || !form.username){
+      if (!form.profile || !form.password || !form.email || !form.username) {
         ElMessage.warning("请填写完整信息")
         return
       }
@@ -249,6 +284,45 @@ export default {
       router.push(`/home/chats/${userId}`);
     }
 
+    const form1 = reactive({
+      reportType: 'post',
+      reason: '',
+      message: '',
+    })
+
+    const showJuDialog = ref(false)
+    const openJuDialog = (reportType) => {
+      form1.reportType = reportType
+      showJuDialog.value = true; // 显示对话框
+    };
+    const closeJuDialog = () => {
+      showJuDialog.value = false; // 关闭对话框
+    };
+
+    const submitJu = async () => {
+      if (form1.message === '') {
+        ElMessage.warning("评论内容不能为空");
+        return;
+      }
+      const replyData = {
+        reportType: form1.reportType,
+        reason: form1.reason,
+        message: form1.message,
+        userId: myuser.id,
+        targetId: userId,
+      };
+      console.log(replyData);
+      post(`/posts/addReport`, replyData,
+          (message, data) => {
+            ElMessage.success("举报成功");
+            closeJuDialog(); // 关闭对话框
+          }
+      )
+    }
+    const updateJuContent = async (newContent) => {
+      form1.message = newContent; // 更新父组件的内容
+    };
+
     return {
       user,
       userId,
@@ -268,7 +342,8 @@ export default {
       handleClosePreview,
       previewImage,
       handlePictureCardPreview,
-      beforeUpload
+      beforeUpload,
+      form1, showJuDialog, submitJu, closeJuDialog, openJuDialog, updateJuContent
     };
   }
 };
@@ -379,4 +454,61 @@ export default {
 .hide_box /deep/ .el-upload--picture-card {
   display: none;
 }
+
+.reply-dialog {
+  padding-top: 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dialog-content {
+  background-color: #D6DDE5FF;
+  padding: 20px;
+  width: 80%;
+  max-width: 600px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  resize: none;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.dialog-actions button {
+  background-color: #409EFF;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  margin-left: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.dialog-actions button:hover {
+  background-color: #3077C1;
+}
+.action-buttons {
+  display: flex; /* 使用 flex 布局 */
+  gap: 10px; /* 按钮之间的间距 */
+  align-items: center; /* 垂直居中 */
+}
+
 </style>
