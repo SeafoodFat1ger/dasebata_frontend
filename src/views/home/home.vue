@@ -106,9 +106,9 @@ export default {
     return {
       announcements: [
         { text: '欢迎访问我们的网站！'},
-        { text: '[置顶] 进站须知~~~~', link: '/home/postDetail/1' },
-        { text: '[置顶] 数据库作业介绍~~~~~', link: '/home/postDetail/1' },
-        { text: '[置顶] 数据库成员介绍~~~~~~', link: '/home/postDetail/1' }
+        { text: '[置顶] 进站须知~~~~', link: '/home/postDetail/92' },
+        { text: '[置顶] 数据库作业介绍~~~~~', link: '/home/postDetail/10000' },
+        { text: '[置顶] 数据库成员介绍~~~~~~', link: '/home/postDetail/93' }
       ],
 
       tags: [{
