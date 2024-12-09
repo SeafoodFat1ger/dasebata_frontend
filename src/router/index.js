@@ -77,6 +77,11 @@ const router = createRouter({ // 创建路由实例
                     component: () => import('../views/home/postList.vue'),
                 },
                 {
+                    path: 'problems',
+                    name: 'problems',
+                    component: () => import('../views/home/problemList.vue'),
+                },
+                {
                     path: 'tags',
                     name: 'tags',
                     component: () => import('../views/home/tagList.vue'),

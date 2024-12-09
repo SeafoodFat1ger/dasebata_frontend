@@ -126,7 +126,7 @@ import {useStore} from "@/stores/index.js";
 import {get} from "@/net/index.js"
 
 const store = useStore();
-const avatar = store.auth.user.avatar;
+const avatar = ref(store.auth.user.avatar);
 const userName = store.auth.user.username;
 const userEmail = store.auth.user.email;
 const isSmallScreen = ref(false);
