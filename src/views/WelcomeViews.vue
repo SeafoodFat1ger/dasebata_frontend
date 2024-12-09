@@ -2,7 +2,7 @@
   <div style="width: 100vw;height: 100vh;overflow: hidden;display: flex">
     <!--左侧壁纸固定-->
     <div style="flex:1">
-      <img style="width: 100%;height: 100%" fit ="cover" src="../assets/logo.jpg"/>
+      <img style="width: 100%;height: 100%" fit ="cover" src="../assets/logo.png"/>
     </div>
     <div class="welcome-title">
       <div style="font-size: 30px;font-weight: bold">欢迎来到我们的论坛</div>
