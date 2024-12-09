@@ -1,103 +1,115 @@
 <template>
-  <div class="el_main_content">
-    <div class="main_content_header">
-      <span class="username">{{ user.username }}</span>
-    </div>
-    <div class="main_content_center">
-      <el-scrollbar class="faultExpertConsultation_scrollbar" ref="scrollbarRef" @scroll="onScroll">
-        <!-- 查看更多历史记录按钮 -->
-        <div v-if="showLoadMore" class="load-more-btn">
-          <el-button @click="loadMoreHistory" type="text" size="small" class="load-more-btn-text">
-            ——————查看更多历史记录——————
-          </el-button>
-        </div>
+  <div class="el_main_content" :style="wuxiao ? { backgroundColor: '#ffffff' } : {}">
+    <div v-if="!wuxiao">
+      <div class="main_content_header">
+        <span class="username">{{ user.username }}</span>
+      </div>
 
-        <!-- 对话内容 -->
-        <div v-for="(item, index) in messagesWithTimestamps" :key="index">
-          <div v-if="item.showTime" class="chat_time">
-            {{ formatSendTime(item.timestamp) }}
+      <div class="main_content_center">
+        <el-scrollbar class="faultExpertConsultation_scrollbar" ref="scrollbarRef" @scroll="onScroll">
+          <!-- 查看更多历史记录按钮 -->
+          <div v-if="showLoadMore" class="load-more-btn">
+            <el-button @click="loadMoreHistory" type="text" size="small" class="load-more-btn-text">
+              ——————查看更多历史记录——————
+            </el-button>
           </div>
-          <div v-if="item.from === '我'" class="question chat">
-            <div class="chat_question chat_common">
-              <!-- 如果消息是图片链接，渲染为图片 -->
-              <img v-if="isImageUrl(item.message)" :src="item.message" class="message-image"/>
-              <!-- 否则渲染为文本 -->
-              <span v-else>{{ item.message }}</span>
+
+          <!-- 对话内容 -->
+          <div v-for="(item, index) in messagesWithTimestamps" :key="index">
+            <div v-if="item.showTime" class="chat_time">
+              {{ formatSendTime(item.timestamp) }}
             </div>
-            <img :src="myuser.avatar" alt="wo" class="avatar">
-          </div>
-          <div v-if="item.from === '他'" class="answer chat">
-            <img :src="user.avatar" alt="ta" class="avatar">
-            <div class="chat_answer chat_common">
-              <!-- 如果消息是图片链接，渲染为图片 -->
-              <img v-if="isImageUrl(item.message)" :src="item.message" class="message-image"/>
-              <!-- 否则渲染为文本 -->
-              <span v-else>{{ item.message }}</span>
+            <div v-if="item.from === '我'" class="question chat">
+              <div class="chat_question chat_common">
+                <!-- 如果消息是图片链接，渲染为图片 -->
+                <img v-if="isImageUrl(item.message)" :src="item.message" class="message-image"/>
+                <!-- 否则渲染为文本 -->
+                <span v-else>{{ item.message }}</span>
+              </div>
+              <img :src="myuser.avatar" alt="wo" class="avatar">
+            </div>
+            <div v-if="item.from === '他'" class="answer chat">
+              <img :src="user.avatar" alt="ta" class="avatar">
+              <div class="chat_answer chat_common">
+                <!-- 如果消息是图片链接，渲染为图片 -->
+                <img v-if="isImageUrl(item.message)" :src="item.message" class="message-image"/>
+                <!-- 否则渲染为文本 -->
+                <span v-else>{{ item.message }}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </el-scrollbar>
-    </div>
+        </el-scrollbar>
+      </div>
 
-    <!-- 预览图片的弹窗 -->
-    <el-dialog
-        v-model="previewDialogVisible"
-        :visible.sync="previewDialogVisible"
-        :title="previewTitle"
-        :width="'50%'"
-        :before-close="handleClosePreview"
-    >
-      <img
-          v-if="previewImage"
-          :src="previewImage"
-          alt="Preview Image"
-          class="preview-image"
-      />
-    </el-dialog>
+      <!-- 预览图片的弹窗 -->
+      <el-dialog
+          v-model="previewDialogVisible"
+          :visible.sync="previewDialogVisible"
+          :title="previewTitle"
+          :width="'50%'"
+          :before-close="handleClosePreview"
+      >
+        <img
+            v-if="previewImage"
+            :src="previewImage"
+            alt="Preview Image"
+            class="preview-image"
+        />
+      </el-dialog>
 
-    <!-- 评论对话框 -->
-    <div v-if="showReplyDialog" class="reply-dialog">
-      <div class="dialog-content">
-        <div class="dialog-header">
-          <span class="dialog-title">上传图片</span>
-        </div>
-        <div class="dialog-body">
-          <el-form :model="form">
-            <el-form-item label="图片" class="upload-item">
-              <el-upload
-                  list-type="picture-card"
-                  :action="'http://47.93.187.154:8082/posts/uploadImg'"
-                  :on-change="handleChange"
-                  :before-remove="beforeRemove"
-                  :on-preview="handlePictureCardPreview"
-                  :file-list="fileList.front_file"
-                  multiple
-                  :limit="1"
-                  :on-exceed="handleExceed"
-                  :before-upload="beforeUpload"
-                  name="img"
-              >
-              </el-upload>
-            </el-form-item>
-          </el-form>
-        </div>
-        <div class="dialog-actions">
-          <button @click="closeReplyDialog" class="cancel-btn">取消</button>
-          <button @click="askClick(form.avatar)" class="submit-btn">提交</button>
+      <!-- 评论对话框 -->
+      <div v-if="showReplyDialog" class="reply-dialog">
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <span class="dialog-title">上传图片</span>
+          </div>
+          <div class="dialog-body">
+            <el-form :model="form">
+              <el-form-item label="图片" class="upload-item">
+                <el-upload
+                    list-type="picture-card"
+                    :action="'http://47.93.187.154:8082/posts/uploadImg'"
+                    :on-change="handleChange"
+                    :before-remove="beforeRemove"
+                    :on-preview="handlePictureCardPreview"
+                    :file-list="fileList.front_file"
+                    multiple
+                    :limit="1"
+                    :on-exceed="handleExceed"
+                    :before-upload="beforeUpload"
+                    name="img"
+                >
+                </el-upload>
+              </el-form-item>
+            </el-form>
+          </div>
+          <div class="dialog-actions">
+            <button @click="closeReplyDialog" class="cancel-btn">取消</button>
+            <button @click="askClick(form.avatar)" class="submit-btn">提交</button>
+          </div>
         </div>
       </div>
+
+
+      <div class="main_content_footer">
+        <div class="input_box">
+          <textarea class="chat-input no-border" v-model="question"/>
+        </div>
+        <div class="btn_box">
+          <el-button type="primary" class="btn" @click="openReplyDialog">发送图片</el-button>
+          <el-button type="primary" class="btn" @click="askClick(question)">发送</el-button>
+        </div>
+      </div>
+
     </div>
 
 
-    <div class="main_content_footer">
-      <div class="input_box">
-        <textarea class="chat-input no-border" v-model="question"/>
-      </div>
-      <div class="btn_box">
-        <el-button type="primary" class="btn" @click="openReplyDialog">发送图片</el-button>
-        <el-button type="primary" class="btn" @click="askClick(question)">发送</el-button>
-      </div>
+    <div v-if="wuxiao" class="wuxiao-content">
+      <p class="wuxiao-text">你来到了没有知识的荒原</p>
+      <el-button type="primary" @click="goHome" class="go-home-btn">跳转首页</el-button>
+      <img src="http://47.93.187.154:8082/imgview/1733674414290error.png">
     </div>
+
   </div>
 </template>
 
@@ -105,7 +117,7 @@
 import {ref, onMounted, onBeforeUnmount, computed, watch, reactive} from "vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {get, post} from "@/net/index.js";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {useStore} from "@/stores/index.js";
 import myEditor from "@/components/Editor.vue";
 
@@ -129,9 +141,19 @@ const myuser = store.auth.user; // 当前登录用户
 const fetchUser = () => {
   get(`/users/get/${userId}`, (message, data) => {
     user.value = data;
-  });
+  }, error, error);
 };
 
+const wuxiao = ref(false);
+
+const error = () => {
+  wuxiao.value = true;
+}
+
+const router = useRouter()
+const goHome = () => {
+  router.push(`/home/home`);  // 假设你的首页路由名称是 'home'
+};
 
 const form = reactive({
   avatar: '',
@@ -614,11 +636,53 @@ onBeforeUnmount(() => {
 }
 
 .message-image {
-  max-width: 300px;  /* 设置图片最大宽度 */
+  max-width: 300px; /* 设置图片最大宽度 */
   max-height: 200px; /* 设置图片最大高度 */
-  width: 100%;       /* 让图片根据容器宽度自适应 */
-  height: auto;      /* 保持图片的纵横比 */
+  width: 100%; /* 让图片根据容器宽度自适应 */
+  height: auto; /* 保持图片的纵横比 */
   border-radius: 8px;
   margin-top: 10px;
+}
+
+
+.full-screen-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+}
+
+.full-screen-image img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+
+/* wuxiao 状态时的内容 */
+.wuxiao-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+}
+
+.wuxiao-text {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.go-home-btn {
+  font-size: 16px;
 }
 </style>

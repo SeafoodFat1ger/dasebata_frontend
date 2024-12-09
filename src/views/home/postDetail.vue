@@ -12,7 +12,7 @@
           <h2>{{ postDetail.postTitle }}</h2>
           <p class="username">{{ postDetail?.postAuthor?.name }}</p>
         </div>
-        <button @click.stop="openJuDialog('user')" class="action-button delete">
+        <button v-if="!wuxiaoPost" @click.stop="openJuDialog('user')" class="action-button delete">
           <span class="icon">⚠️</span>举报
         </button>
       </div>

@@ -95,6 +95,7 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item :icon="User" @click="goProfile">个人信息</el-dropdown-item>
+              <el-dropdown-item :icon="House" divided v-if="store.auth.user.id===3" @click="goBack">进入后台</el-dropdown-item>
               <el-dropdown-item :icon="SwitchButton" divided @click="logout">退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -184,6 +185,11 @@ const logout = () => {
 const goProfile = () => {
   router.push(`/home/profile/${store.auth.user.id}/activity`);
 };
+
+const goBack = () => {
+  router.push(`/admin/jubao`);
+};
+
 
 </script>
 

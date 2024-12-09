@@ -9,6 +9,7 @@
         <div class="last-login">
           最后一次登录时间：{{ formatLastLogin(user.lastLogin) }}
         </div>
+        <div v-if="!wuxiao">
         <button v-if="userId == myuser.id" type="primary" class="edit-button" @click="editProfile">编辑个人资料
         </button>
         <div class="action-buttons">
@@ -16,6 +17,7 @@
           <button v-if="userId != myuser.id" @click="openJuDialog('user')" class="edit-button">
             <span class="icon">⚠️</span>举报
           </button>
+        </div>
         </div>
       </div>
 
@@ -148,6 +150,9 @@ export default {
     const route = useRoute();
     const userId = route.params.userId; // 获取当前用户的ID
     const user = ref({});
+
+    const wuxiao = ref(false);
+
     const fetchUser = () => {
       get(`/users/get/${userId}`, (message, data) => {
         user.value = data;
@@ -155,8 +160,24 @@ export default {
         form.email = data.email;
         form.avatar = data.avatar;
         form.profile = data.profile;
-      });
+      }, error, error);
     };
+
+    const error = () => {
+      wuxiao.value = true;
+      user.value = {
+        "id": 1,
+        "username": "用户不存在",
+        "email": "buaaer@mars.com",
+        "password": "",
+        "createdAt": "火星的访客",
+        "lastLogin": "火星的访客",
+        "profile": "简介",
+        "avatar": "http://47.93.187.154:8082/imgview/1733674414290error.png",
+      }
+
+    }
+
 
     // 上传图片
     const fileList = ref([]);
@@ -324,6 +345,7 @@ export default {
     };
 
     return {
+      wuxiao,
       user,
       userId,
       myuser,
@@ -505,6 +527,7 @@ textarea {
 .dialog-actions button:hover {
   background-color: #3077C1;
 }
+
 .action-buttons {
   display: flex; /* 使用 flex 布局 */
   gap: 10px; /* 按钮之间的间距 */
