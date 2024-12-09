@@ -16,7 +16,7 @@
             <el-menu-item index="/home/posts">
               <span>帖子列表</span>
             </el-menu-item>
-            <el-menu-item index="/home/posts">
+            <el-menu-item index="/home/problems">
               <span>问题列表</span>
             </el-menu-item>
             <el-menu-item index="/home/tags">
@@ -64,7 +64,7 @@
             <el-menu-item index="/home/posts">
               <span>帖子列表</span>
             </el-menu-item>
-            <el-menu-item index="/home/posts">
+            <el-menu-item index="/home/problems">
               <span>问题列表</span>
             </el-menu-item>
             <el-menu-item index="/home/tags">

@@ -19,12 +19,12 @@
 
         <el-menu-item index="/admin/jubao" :route="{ path: '/admin/jubao' }">
           <el-icon><Message /></el-icon>
-          <span slot="title">举报管理</span>
+          <span slot="title">用户管理</span>
         </el-menu-item>
 
         <el-menu-item index="/admin/post" :route="{ path: '/admin/post' }">
           <el-icon><EditPen /></el-icon>
-          <span slot="title">帖子管理</span>
+          <span slot="title">内容管理</span>
         </el-menu-item>
 
         <el-menu-item index="home" @click="handleHome">

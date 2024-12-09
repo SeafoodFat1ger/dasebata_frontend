@@ -14,9 +14,7 @@
         </button>
         <div class="action-buttons">
           <button v-if="userId != myuser.id" type="primary" class="edit-button" @click="gotoChat">去私信</button>
-          <button v-if="userId != myuser.id" @click="openJuDialog('user')" class="edit-button">
-            <span class="icon">⚠️</span>举报
-          </button>
+
         </div>
         </div>
       </div>
@@ -98,35 +96,6 @@
 
     <!-- 页面内容 -->
     <el-main>
-      <!--举报-->
-      <div v-if="showJuDialog" class="reply-dialog">
-        <div class="dialog-content">
-          <el-form :model="form1">
-            <el-form-item label="举报对象">
-              <el-tag>{{ form1.reportType }}</el-tag>
-            </el-form-item>
-            <el-form-item label="举报原因">
-              <el-select
-                  v-model="form1.reason"
-                  placeholder="请选择"
-              >
-                <el-option label="血腥暴力" value="1"/>
-                <el-option label="低俗色情" value="2"/>
-                <el-option label="造谣生事" value="3"/>
-                <el-option label="恶意攻击" value="4"/>
-                <el-option label="垃圾信息" value="5"/>
-              </el-select>
-            </el-form-item>
-          </el-form>
-
-          <myEditor @update:content="updateJuContent"/>
-
-          <div class="dialog-actions">
-            <button @click="closeJuDialog" class="cancel-btn">取消</button>
-            <button @click="submitJu" class="submit-btn">提交</button>
-          </div>
-        </div>
-      </div>
       <router-view></router-view>
     </el-main>
   </el-container>
@@ -305,44 +274,8 @@ export default {
       router.push(`/home/chats/${userId}`);
     }
 
-    const form1 = reactive({
-      reportType: 'post',
-      reason: '',
-      message: '',
-    })
 
-    const showJuDialog = ref(false)
-    const openJuDialog = (reportType) => {
-      form1.reportType = reportType
-      showJuDialog.value = true; // 显示对话框
-    };
-    const closeJuDialog = () => {
-      showJuDialog.value = false; // 关闭对话框
-    };
 
-    const submitJu = async () => {
-      if (form1.message === '') {
-        ElMessage.warning("评论内容不能为空");
-        return;
-      }
-      const replyData = {
-        reportType: form1.reportType,
-        reason: form1.reason,
-        message: form1.message,
-        userId: myuser.id,
-        targetId: userId,
-      };
-      console.log(replyData);
-      post(`/posts/addReport`, replyData,
-          (message, data) => {
-            ElMessage.success("举报成功");
-            closeJuDialog(); // 关闭对话框
-          }
-      )
-    }
-    const updateJuContent = async (newContent) => {
-      form1.message = newContent; // 更新父组件的内容
-    };
 
     return {
       wuxiao,
@@ -365,7 +298,7 @@ export default {
       previewImage,
       handlePictureCardPreview,
       beforeUpload,
-      form1, showJuDialog, submitJu, closeJuDialog, openJuDialog, updateJuContent
+
     };
   }
 };

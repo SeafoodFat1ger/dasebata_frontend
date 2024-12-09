@@ -12,9 +12,6 @@
           <h2>{{ postDetail.postTitle }}</h2>
           <p class="username">{{ postDetail?.postAuthor?.name }}</p>
         </div>
-        <button v-if="!wuxiaoPost" @click.stop="openJuDialog('user')" class="action-button delete">
-          <span class="icon">⚠️</span>举报
-        </button>
       </div>
 
       <!-- 灰色分割线 -->
@@ -42,9 +39,6 @@
           <button @click="openReplyDialog" class="action-button">
             <span class="icon">✉️</span>评论
           </button>
-          <button @click="openJuDialog('post')" class="action-button delete">
-            <span class="icon">⚠️</span>举报
-          </button>
           <button v-if="userId === 3 ||userId === postAuthorId" @click="deletePost" class="action-button delete">
             <span class="icon">❌</span>删帖
           </button>
@@ -61,35 +55,6 @@
           </div>
         </div>
 
-        <!--举报-->
-        <div v-if="showJuDialog" class="reply-dialog">
-          <div class="dialog-content">
-            <el-form :model="form">
-              <el-form-item label="举报对象">
-                <el-tag>{{ form.reportType }}</el-tag>
-              </el-form-item>
-              <el-form-item label="举报原因">
-                <el-select
-                    v-model="form.reason"
-                    placeholder="请选择"
-                >
-                  <el-option label="血腥暴力" value="1"/>
-                  <el-option label="低俗色情" value="2"/>
-                  <el-option label="造谣生事" value="3"/>
-                  <el-option label="恶意攻击" value="4"/>
-                  <el-option label="垃圾信息" value="5"/>
-                </el-select>
-              </el-form-item>
-            </el-form>
-
-            <myEditor @update:content="updateJuContent"/>
-
-            <div class="dialog-actions">
-              <button @click="closeJuDialog" class="cancel-btn">取消</button>
-              <button @click="submitJu" class="submit-btn">提交</button>
-            </div>
-          </div>
-        </div>
 
         <!-- 评论区 -->
         <div class="comments">
@@ -107,12 +72,10 @@
               <div class="comment-date">{{ comment.cmtPublishDate }}</div>
             </div>
 
-            <button @click.stop="openJuDialog('comment')" class="delete-comment-btn">
-              <span class="icon">⚠️</span>
-            </button>
             <!-- 删除按钮 -->
             <button v-if="userId === 3 || comment.cmtAuthor.id === userId"
-                    @click.stop="deleteCmt(comment.cmtId, comment.cmtContent, comment.cmtAuthor)" class="delete-comment-btn">
+                    @click.stop="deleteCmt(comment.cmtId, comment.cmtContent, comment.cmtAuthor)"
+                    class="delete-comment-btn">
               删除
             </button>
           </div>
@@ -154,12 +117,6 @@ export default {
     TopHeader,
   },
   setup() {
-    const form = reactive({
-      reportType: 'post',
-      reason:'',
-      message:'',
-    })
-
     const route = useRoute(); // 使用 useRoute 钩子获取路由信息
     const wuxiaoPost = ref(false);
     const userId = store.auth.user.id;
@@ -181,10 +138,6 @@ export default {
 
     const updateContent = async (newContent) => {
       replyContent.value = newContent; // 更新父组件的内容
-    };
-
-    const updateJuContent = async (newContent) => {
-      form.message = newContent; // 更新父组件的内容
     };
 
     const comments = ref([]);
@@ -376,26 +329,6 @@ export default {
       openReplyDialog();
     }
 
-    const submitJu = async () => {
-      if (form.message==='') {
-        ElMessage.warning("评论内容不能为空");
-        return;
-      }
-      const replyData = {
-        reportType: form.reportType,
-        reason: form.reason,
-        message:form.message,
-        userId:userId,
-        targetId:postAuthorId.value,
-      };
-      console.log(replyData);
-      post(`/posts/addReport`, replyData,
-          (message, data) => {
-            ElMessage.success("举报成功");
-            closeJuDialog(); // 关闭对话框
-          }
-      )
-    }
 
     const submitReply = async () => {
       if (replyContent.value.length === 0) {
@@ -424,15 +357,6 @@ export default {
     };
 
 
-    const showJuDialog = ref(false)
-    const openJuDialog = (reportType) => {
-      form.reportType=reportType
-      showJuDialog.value = true; // 显示对话框
-    };
-    const closeJuDialog = () => {
-      showJuDialog.value = false; // 关闭对话框
-    };
-
     const closeReplyDialog = () => {
       showReplyDialog.value = false; // 关闭对话框
       replyContent.value = ""; // 清空输入框内容
@@ -446,14 +370,14 @@ export default {
     }
 
     return {
-      wuxiaoPost, form,
+      wuxiaoPost,
       postId, postDetail, comments, userId, postAuthorId,
       deleteCmt,
       showReplyDialog, replyContent, updateContent,
       fetchPostDetail,
       likePost, starPost,
       submitReply, openReplyDialog, closeReplyDialog, replyByClick,
-      closeJuDialog, openJuDialog, showJuDialog,updateJuContent,submitJu,
+
       getRandomColor,
       deletePost,
       navigateTo,
