@@ -317,12 +317,16 @@ onMounted(() => {
 const formatSendTime = (sendTime) => {
   const now = new Date();
   const sendDate = new Date(sendTime);
-  const timeDiff = now - sendDate;
+
+  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 当前日期（去除时间部分）
+  const sendDateAtMidnight = new Date(sendDate.getFullYear(), sendDate.getMonth(), sendDate.getDate()); // 消息的日期（去除时间部分）
+
+  const timeDiff = now - sendDateAtMidnight; // 比较日期差异
   const oneDay = 24 * 60 * 60 * 1000;
 
   if (timeDiff < oneDay) {
     return `今天 ${formatTime(sendDate)}`;
-  } else if (timeDiff < 7 * oneDay) {
+  } else if (timeDiff < 2 * oneDay) { // 如果时间差小于两天，显示昨天
     return `昨天 ${formatTime(sendDate)}`;
   } else {
     return sendDate.toLocaleDateString("zh-CN", {
