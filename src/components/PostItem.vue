@@ -19,7 +19,7 @@ export default {
     color: {
       type: String,
       default: '#edf2f8' // 默认颜色，如果没有传入颜色值
-    }
+    },
   },
   data() {
     return {

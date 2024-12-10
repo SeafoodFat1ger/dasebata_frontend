@@ -1,6 +1,6 @@
 <template>
   <TopHeader/>
-  <div class="post-container">
+  <div class="post-container" :style="containerStyle">
     <div class="post-details">
       <!-- 帖子标题和作者信息 -->
       <div class="post-header">
@@ -60,7 +60,7 @@
         <div class="comments">
           <div v-for="(comment, index) in comments" :key="comment.cmtId" class="comment-card"
                @click="replyByClick(comment.cmtAuthor.name)"
-               :style="{ backgroundColor: getRandomColor(userId) }">
+               :style="{ backgroundColor: getRandomColor(comment.cmtAuthor.id) }">
             <div>
               <img :src="comment.cmtAuthor.avatar" alt="Avatar" class="comment-avatar"
                    @click.stop="navigateTo(comment.cmtAuthor.id)"/>
@@ -73,7 +73,7 @@
             </div>
 
             <!-- 删除按钮 -->
-            <button v-if="userId === 3 || comment.cmtAuthor.id === userId"
+            <button v-if="userId === 3 || comment.cmtAuthor.id === userId || postAuthorId === userId"
                     @click.stop="deleteCmt(comment.cmtId, comment.cmtContent, comment.cmtAuthor)"
                     class="delete-comment-btn">
               删除
@@ -89,7 +89,7 @@
 import TopHeader from "@/views/TopHeader.vue";
 import {Message} from "@element-plus/icons";
 import {post, get} from '@/net';
-import {reactive, ref} from "vue";
+import {computed, reactive, ref} from "vue";
 import {ElMessage, ElTag} from "element-plus";
 import {useRoute} from "vue-router";
 import 'element-plus/theme-chalk/el-icon.css';
@@ -177,7 +177,14 @@ export default {
 
     }
 
-
+    const isProblem = ref(false);
+    const containerStyle = computed(() => {
+      return {
+        background: isProblem.value
+            ? 'linear-gradient(135deg, rgba(100, 48, 232, 0.35), #BFFFBB77)' // problem
+            : 'linear-gradient(135deg, rgba(172, 186, 223, 0.79), #FCFDE9FF)' // post
+      };
+    });
     const fetchPostDetail = async (postId) => {
       get(`/posts/getID/${postId}/${userId}`,
           (message, data) => {
@@ -193,10 +200,11 @@ export default {
 
             postAuthorId.value = data.postAuthor.id;
 
-            console.log(postDetail.value);
+
+            isProblem.value = postDetail.value.postType === "problem";
+            console.log(isProblem.value);
           }, error, error
       );
-      // console.log(comments.value);
     }
     fetchPostDetail(postId);
 
@@ -381,6 +389,7 @@ export default {
       getRandomColor,
       deletePost,
       navigateTo,
+      containerStyle,
     }
   }
 };
@@ -408,7 +417,6 @@ body {
   width: 70%;
   max-width: 900px;
   margin: 40px auto;
-  background: linear-gradient(135deg, rgba(172, 186, 223, 0.79), #FCFDE9FF); /* 渐变背景 */
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 20px;

@@ -9,11 +9,10 @@
       <div style="margin-top: 10px">这是数据库大作业</div>
       <div style="margin-top: 5px">更是我们的自由之地</div>
     </div>
-    <!--右侧：根据路由展示登录/注册/忘记密码组件-->
+    <!--右侧-->
     <div style="width: 450px;text-align: center;background-color: white;z-index: 1">
       <!--根据路由切换展示的组件-->
       <router-view v-slot = "{Component}">
-        <!--给切换组件添加一个过渡动画-->
         <transition name="el-fade-in-linear">
           <component :is="Component" style="height: 100%"/>
         </transition>
