@@ -134,7 +134,15 @@ http://localhost:8082
 - **查看帖子**：用户可以浏览所有帖子，按照时间、点赞数等排序。
 - **帖子分类**：根据标签对帖子进行分类，便于用户查找。
 - **帖子热度**：用户可以在首页看到帖子热榜，了解不同类型的热榜话题。
-- **删除帖子**：用户可以且仅可以删除自己发布的贴子。
+- **删除帖子**：用户可以且仅可以删除自己发布的贴子，管理员可以删除所有帖子。
+### 3.问题功能
+
+- **发布问题**：用户可以发布问题，同样支持发送图片和html渲染，包含问题、分区、话题和标签。
+- **查看帖子**：用户可以浏览所有所有问题，按照时间、点赞数等排序。
+- **帖子分类**：根据标签对问题进行分类，便于用户查找。
+- **帖子热度**：用户可以在首页看到问题热榜
+- **删除帖子**：用户可以且仅可以删除自己发布的问题，管理员可以删除所有问题。
+
 ### 3. 评论功能
 - **评论帖子**：用户可以对帖子进行评论，发表自己的看法。
 - **查看评论**：用户可以查看帖子的所有评论，了解其他用户的观点。
@@ -153,16 +161,19 @@ http://localhost:8082
 - **查看联系人**：用户可以查看与自己有消息往来的用户。
 
 ### 7. 管理员功能
+
+- 管理员可以进入**后台页面**对用户和内容进行管理：
+
 - **用户管理**：管理员可以查看、编辑或删除用户信息。
 - **帖子管理**：管理员可以审核、删除不当帖子，维护论坛秩序。
 - **评论管理**：管理员可以管理评论，删除不当评论。
+- **删帖删评通知**：当一个用户的帖子/问题/评论被管理员删除时，会以私信的告知该用户
 ### 8. 标签分区功能
 - **帖子分区**：用户可以根据分区对帖子进行筛选，查看自己感兴趣的分区。
 - **标签管理**：用户可以查看所有标签、以及使用了该标签的所有帖子。
-- **问题帖子**：用户可以发布问题和文章，作为帖子的两种表现形式。
-### 9. 搜索通知功能
-- **字符串搜索**：用户可以输入字符串，搜索包含该字符串的帖子、用户或者标签。
-- **消息通知**：当用户收到点赞、收藏或者评论时，系统会以私信的形式通知用户。
+- **问题帖子**：用户可以发布帖子和问题，作为帖子的两种表现形式。
+### 9. 搜索功能
+- **字符串搜索**：用户可以输入字符串，搜索任意包含该字符串的帖子/问题和用户。
 ## 二、数据库基本表定义
 ### 1. 用户表 (Users)
 **功能**: 存储论坛用户的信息，包括用户名、密码和其他个人资料。
@@ -304,22 +315,15 @@ http://localhost:8082
 | created_at   | datetime      | 消息发送时间             |
 ## 三、系统重要功能实现方法
 
-### 鉴权实现
-
-#### 路由守护
-
-#### 文件上传
-
-#### 图床
-
 ### 触发器设计与实现
 
 触发器一方面通过MySQL建表语句进行约束，另一方面在Java中建立相应的实体类，与数据库进行交互。
-### 1. 用户
+#### 1. 用户
 建表语句如下
 id为主键，实现自增约束
 对username和email进行唯一性约束，确保用户名和邮箱不会重复
 id、username、email、password字段以NOT NULL约束，其余字段默认为NULL
+
 ```sql
 CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -352,11 +356,12 @@ public class User {
     private String avatar;
 }
 ```
-### 2. 帖子
+#### 2. 帖子
 建表语句如下
 post_id为主键，实现自增约束
 user_id为外键，posts_ibfk_1为user_id的外键约束
 created_at字段默认为NULL，其余字段都以NOT NULL约束
+
 ```sql
 CREATE TABLE `posts` (
   `post_id` int NOT NULL AUTO_INCREMENT,
@@ -388,12 +393,13 @@ public class Post {
     private Integer postBookmarkNum;
 }
 ```
-### 3. 用户-标签
+#### 3. 用户-标签
 建表语句如下
 id为主键，实现自增约束
 所有字段都以NOT NULL约束
 user_id为外键，usertags_ibfk_1为user_id的外键约束
 对(user_id,tag)实现唯一性约束，确保用户不会重复关注同一个tag
+
 ```sql
 CREATE TABLE `usertags` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -416,7 +422,7 @@ public class UserTag {
     private String tag;
 }
 ```
-### 4. 帖子-标签
+#### 4. 帖子-标签
 建表语句如下
 id为主键，实现自增约束
 所有字段都以NOT NULL约束
@@ -445,7 +451,7 @@ public class PostTag {
     private String tag;
 }
 ```
-### 5. 评论
+#### 5. 评论
 建表语句如下
 comment_id为主键，实现自增约束
 created_at字段默认为NULL，其余字段都以NOT NULL约束
@@ -479,7 +485,7 @@ public class Comment {
     private LocalDateTime createdAt;
 }
 ```
-### 6. 帖子-内容
+#### 6. 帖子-内容
 建表语句如下
 id为主键，实现自增约束
 所有字段以NOT NULL 约束
@@ -508,7 +514,7 @@ public class PostContent {
     private String data;
 }
 ```
-### 7. 点赞
+#### 7. 点赞
 建表语句如下
 id为主键，实现自增约束
 create_time字段默认为NULL，其余字段都以NOT NULL约束
@@ -540,7 +546,7 @@ public class LikeBookmark {
     private LocalDateTime createTime;
 }
 ```
-### 8. 收藏
+#### 8. 收藏
 建表语句如下
 id为主键，实现自增约束
 create_time字段默认为NULL，其余字段都以NOT NULL约束
@@ -572,7 +578,7 @@ public class LikeBookmark {
     private LocalDateTime createTime;
 }
 ```
-### 9. 消息
+#### 9. 消息
 建表语句如下
 chat_id为主键，实现自增约束
 created_at字段默认为NULL，其余字段都以NOT NULL约束
@@ -608,7 +614,7 @@ public class Chat {
 ```
 ### 存储过程设计与实现
 后端基于xml文件映射，使用MyBatis调用存储过程，操作数据库数据。下面介绍各个Mapper层数据库交互函数的定义和实现。
-### User
+#### User
 UserMapper接口内容如下
 ```java
 // 用户表users插入数据
@@ -675,7 +681,7 @@ UserMapper.xml文件内容如下，update函数参与映射
     </update>
 </mapper>
 ```
-### Post
+#### Post
 PostMapper接口内容如下
 ```java
 // 帖子表posts插入数据
@@ -978,7 +984,7 @@ PostMapper.xml文件内容如下，insertPost、insertPostTag、insertPostConten
     </select>
 </mapper>
 ```
-### Like
+#### Like
 LikeMapper接口内容如下
 ```java
 // 点赞表likes插入数据
@@ -1010,7 +1016,7 @@ void deleteByPostId(Integer postId);
 LikeBookmarkDto selectRecord(@Param("userId") Integer userId, @Param("postId") Integer postId);
 ```
 LikeMapper.xml文件置空，没有需要参与映射的函数
-### Bookmark
+#### Bookmark
 BookmarkMapper接口内容如下
 ```java
 // 收藏表bookmarks插入数据
@@ -1042,7 +1048,7 @@ void deleteByPostId(Integer postId);
 LikeBookmarkDto selectRecord(@Param("userId") Integer userId, @Param("postId") Integer postId);
 ```
 BookmarkMapper.xml文件置空，没有需要参与映射的函数
-### Chat
+#### Chat
 ChatMapper接口内容如下
 ```java
 // 根据userId查找用户联系人
@@ -1090,19 +1096,68 @@ ChatMapper.xml文件如下，findFriends、selectAll、count等函数参与映�
     </select>
 </mapper>
 ```
+### 前端重点功能实现
+
+#### 路由守卫
+
+#### 动态路由匹配
+
+#### 图床
+
 ## 四、系统实现效果
 
 ### 登录注册
 
-#### 首页
-
 #### 登录
+
+进入首界面，即登录界面
+
+![image-20241211003001027](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211003001027.png)
+
+
 
 #### 注册
 
-#### 登出
+注册新用户。控制输入条件：
 
-### 帖子
+- **用户名**：长度必须在2~8个字符之间
+- **密码**：长度必须在6~16个字符之间；两次输入密码需一致
+- **邮箱**：须是含有@以及.后缀的合法邮箱
+
+![image-20241211003542648](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211003542648.png)
+
+
+
+![image-20241211003635986](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211003635986.png)
+
+#### 退出登录
+
+登录成功后点击右上角头像，点击退出登录按钮。
+
+![image-20241211003844283](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211003844283.png)
+
+### 主页
+
+登录成功后即可进入主界面，包括帖子和问题热榜，以及滑动展示的tag。
+
+- 顶部导航栏支持用户跳转到相应界面。
+
+- 上方公告栏轮播论坛置顶的公告帖，用户可点击直接跳转到对应公告。
+- 点击对应tag即可查看标签详情，点击热榜的蓝色箭头进入帖子流和问题流。
+- 热榜按照发布时间、点赞收藏数量计算得到，彩虹色序号和丝滑的鼠标移进动画带来了良好的用户体验感和互动感。
+- 页面支持窗口大小更改时的自适应
+
+![image-20241211004046644](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211004046644.png)
+
+### 帖子流页面
+
+点击蓝色箭头进入帖子流详细页面。
+
+- 点击左侧导航栏切换查看的帖子类别。
+- 每个帖子显示：作者信息、标题、所有标签、帖子内容的预览、发布时间、点赞/评论/收藏数
+- 页面大小支持自适应。
+
+![image-20241211005137454](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211005137454.png)
 
 ### 个人信息
 
