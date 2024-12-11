@@ -23,7 +23,7 @@
             <p>没有找到相关问题</p>
           </div>
           <div v-else class="post-items-container">
-            <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"/>
+            <PostItem v-for="post in problems" :key="post.postId" :post="post" :needTag="true"/>
           </div>
         </div>
 
@@ -93,6 +93,7 @@ const fetchSearchResults = async () => {
 
   get(`/posts/find/problem/${searchQuery.value}`, (message, data) => {
     problems.value = data.records;
+    console.log(problems.value)
   });
 
   get(`/posts/find/user/${searchQuery.value}`, (message, data) => {
