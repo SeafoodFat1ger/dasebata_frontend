@@ -1096,13 +1096,260 @@ ChatMapper.xml文件如下，findFriends、selectAll、count等函数参与映�
     </select>
 </mapper>
 ```
+
+
 ### 前端重点功能实现
 
 #### 路由守卫
 
-#### 动态路由匹配
+我们采用全局前置守卫的方式，在路由跳转前执行，用于登录状态检查和权限判断
 
-#### 图床
+**优点：**
+
+- **集中性**：通过全局前置守卫，可以集中管理应用中的权限控制
+
+- **灵活性**：可以根据不同的业务需求，灵活配置不同的访问规则
+
+- **安全性**：可以避免用户在未登录的情况下访问受保护的页面(如管理员后台)，未登录自动跳转到登录页面
+
+```javascript
+router.beforeEach((to, from, next) => {
+    const store = useStore(); // 获取store
+    const user = store.auth.user || JSON.parse(localStorage.getItem('user')); // 从store或localStorage获取用户信息
+    // 检查用户是否已登录
+    if (!user && to.name !== 'login' && to.name !== 'register') {
+        // 如果用户未登录，且试图访问需要登录的页面，重定向到登录页面
+        next({name: 'login'});
+    } else if (to.name === 'admin' && isAdmin) {
+        // 如果访问的是/admin页面且用户的id不是3，重定向到首页或其他页面
+        next({name: 'home'});
+    } else {
+        // 如果用户已登录或访问的是不需要登录的页面，继续访问
+        next();
+    }
+});
+```
+
+#### 路由传参
+
+**（1）动态路由传参**
+
+通过在路由路径中使用参数占位符`:param`，我们可以在访问不同路径时传递不同的参数值，并在组件中获取这些参数
+
+**定义路由：**
+
+```javascript
+{
+    path: '/home/postDetail/:id',
+    name: 'PostDetail',
+    component: () => import('../views/home/postDetail.vue')
+},
+```
+
+**组件中获取参数：**
+
+```javascript
+const postId = route.params.id; // 获取帖子 ID
+```
+
+**访问路径：**
+
+访问`/home/postDetail/123`时，`route.params.id`的值为`123`
+
+**（2）查询参数传参**
+
+**传递参数：**
+
+```javascript
+// 跳转到搜索页面
+const onSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({ name: 'search', query: { query: searchQuery.value.trim() } });
+  } else {
+    ElMessage.warning('搜索内容不能为空');
+  }
+};
+```
+
+**接收参数：**
+
+```javascript
+// 搜索参数
+const searchQuery = ref(route.query.query);
+```
+
+**访问路径：**
+
+搜索`123`时对应路径为`/home/search?query=123`
+
+
+
+#### 富文本组件
+
+我们使用开源 Web 富文本编辑器`wangEditor `，并将工具栏进行重新配置，加入图片上传接口，实现真正的图文自由混排
+
+配置如下：
+
+- 视频上传功能由于数据库和服务器配置有限，我们无法实现
+
+- 全屏为了多端自适应功能，我们忍痛砍去
+
+```javascript
+//排除功能
+const toolbarConfig = {
+  excludeKeys: ["group-more-style", 'group-video', 'fullScreen']
+};
+```
+
+图片部分主要配置如下
+
+```javascript
+const editorConfig = {
+  placeholder: '请输入内容...',
+  withCredentials: true,
+  MENU_CONF: {
+    uploadImage: {
+      server: 'http://47.93.187.154:8082/posts/uploadImg',
+      maxFileSize: 10 * 1024 * 1024, // 10M
+      base64LimitSize: 5 * 1024, // 5kb 以下插入 base64
+      onSuccess(file, res) {
+        console.log(`${file.name} 上传成功`, res);
+      },
+      // 上传错误，或者触发 timeout 超时
+      onError(file, err, res) {
+        console.log(`${file.name} 上传出错`, err, res);
+      },
+      //自定义插入
+      customInsert(res, insertFn) {
+        let url = res.data;
+        let alt = res.data;
+        let href = res.data;
+        insertFn(url, alt, href);
+      },
+      //自定义上传
+      async customUpload(file, insertFn) {
+        // file 即选中的文件
+        console.log(file);
+        let formData = new FormData();
+        formData.append("img", file);
+        // 自己实现上传，
+        fetch('http://47.93.187.154:8082/posts/uploadImg', {
+          method: "POST",
+          body: formData,
+        })
+            .then((res) => res.json())
+            .then((res) => {
+              let url = res.data;
+              let alt = res.data;
+              let href = res.data;
+              // 最后插入图片
+              insertFn(url, alt, href);
+            });
+      },
+
+    },
+  },
+};
+```
+
+父子组件之间通信，传递html字符串
+
+```javascript
+// 监听 valueHtml 的变化
+watch(valueHtml, (newValue) => {
+  emit('update:content', newValue); // 向父组件发送事件
+});
+
+//父组件
+<myEditor @update:content="updateContent"/>
+const updateContent = async (newContent) => {
+		form.postContent = newContent; // 更新父组件的内容
+};
+```
+
+由于html的语法特殊性，后端可以通过去掉`<html>`标签得到纯文本内容
+
+前端在贴子摘要部分展示纯文本内容，在贴子详细部分渲染html，得到良好的图文混排效果，实现真正的富文本
+
+
+
+#### 文件上传组件
+
+主要通过`el-upload`组件实现，因为数据库和服务器限制，我们主要使用的是图片上传功能
+
+配置如下：
+
+```html
+<el-upload
+    list-type="picture-card"
+    :action="'http://47.93.187.154:8082/posts/uploadImg'"
+    :on-change="handleChange"
+    :before-remove="beforeRemove"
+    :on-preview="handlePictureCardPreview"
+    :file-list="fileList.front_file"
+    multiple
+    :limit="1"
+    :on-exceed="handleExceed"
+    :before-upload="beforeUpload"
+    name="img"
+>
+</el-upload>
+```
+
+此组件封装性能良好，功能丰富，自定义性高
+
+- 图片上传校验
+
+  ```javascript
+  const beforeUpload = (file) => {
+    const isJpgOrPng = ['image/jpeg', 'image/png'].includes(file.type);
+    const isLt2M = file.size / 1024 / 1024 < 2; // 限制文件大小为 2MB
+  
+    if (!isJpgOrPng) {
+      ElMessage.error('上传头像图片只能是 JPG 或 PNG 格式!');
+      return false
+    }
+    if (!isLt2M) {
+      ElMessage.error('上传头像图片大小不能超过 2MB!');
+      return false
+    }
+    return isJpgOrPng && isLt2M;  // 如果格式和大小都符合，返回 true 继续上传
+  };
+  ```
+
+- 上传前浏览：
+
+  通过`handlePictureCardPreview`函数获取点击的图片，并设置为预览图片
+
+- 上传前删除：
+
+  ```javascript
+  const beforeRemove = () => {
+    const result = new Promise((resolve, reject) => {
+      ElMessageBox.confirm("此操作将删除该图片, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+          .then(() => {
+            resolve();
+            form.avatar = myuser.avatar
+          })
+          .catch(() => {
+            reject(false);
+          });
+    });
+    return result;
+  };
+  ```
+
+- 控制上传数量：
+
+  通过`handleExceed`函数控制溢出
+
+  
+
+
 
 ## 四、系统实现效果
 

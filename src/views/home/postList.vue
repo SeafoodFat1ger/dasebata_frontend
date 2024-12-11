@@ -117,22 +117,22 @@
       </el-form-item>
 
 
-      <el-form-item label="图片">
-        <el-upload
-            list-type="picture-card"
-            :action="'http://47.93.187.154:8082/posts/uploadImg'"
-            :on-change="handleChange"
-            :before-remove="beforeRemove"
-            :on-preview="handlePictureCardPreview"
-            :file-list="fileList.front_file"
-            multiple
-            :limit="1"
-            :on-exceed="handleExceed"
-            :before-upload="beforeUpload"
-            name="img"
-        >
-        </el-upload>
-      </el-form-item>
+<!--      <el-form-item label="图片">-->
+<!--        <el-upload-->
+<!--            list-type="picture-card"-->
+<!--            :action="'http://47.93.187.154:8082/posts/uploadImg'"-->
+<!--            :on-change="handleChange"-->
+<!--            :before-remove="beforeRemove"-->
+<!--            :on-preview="handlePictureCardPreview"-->
+<!--            :file-list="fileList.front_file"-->
+<!--            multiple-->
+<!--            :limit="1"-->
+<!--            :on-exceed="handleExceed"-->
+<!--            :before-upload="beforeUpload"-->
+<!--            name="img"-->
+<!--        >-->
+<!--        </el-upload>-->
+<!--      </el-form-item>-->
 
 
     </el-form>
