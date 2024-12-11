@@ -1434,7 +1434,9 @@ const updateContent = async (newContent) => {
 
 
 
-![image-20241211012130739](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211012130739.png)
+![image-20241211234837204](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211234837204.png)
+
+
 
 
 
@@ -1585,7 +1587,7 @@ const updateContent = async (newContent) => {
 
 ![image-20241211122309958](For_MD_Ting2Django%E5%8C%97%E8%88%AA%E6%A0%A1%E5%9B%AD%E8%AE%BA%E5%9D%9B___%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/image-20241211122309958.png)
 
-## 五、总结
+## 五、总结与感想
 
 @**张馨月：**本次数据库作业应该是我第一次参与实现基于Web的中等规模数据库应用系统。由于选题十分自由，我们小组经过讨论选择了学校目前恰好相对缺失的学生论坛；所以正如登录界面的那一行”这是数据库大作业，更是我们的自由之地“，我在[39.105.0.52](http://39.105.0.52/)这片由我们搭建的BBS里实在是学到了很多东西。
 
