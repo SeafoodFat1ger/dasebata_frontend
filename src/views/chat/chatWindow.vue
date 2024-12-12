@@ -151,7 +151,7 @@ const error = () => {
 
 const router = useRouter()
 const goHome = () => {
-  router.push(`/home/home`);  // 假设你的首页路由名称是 'home'
+  router.push(`/home/home`);
 };
 
 const form = reactive({
@@ -220,10 +220,10 @@ const beforeUpload = (file) => {
 
 const showReplyDialog = ref(false);
 const openReplyDialog = () => {
-  showReplyDialog.value = true; // 显示对话框
+  showReplyDialog.value = true;
 };
 const closeReplyDialog = () => {
-  showReplyDialog.value = false; // 关闭对话框
+  showReplyDialog.value = false;
 };
 const isImageUrl = (message) => {
   return message.startsWith('http://47.93.187.154:8082/imgview/');
@@ -234,14 +234,14 @@ const fetchHistoryMessages = () => {
   loadingMessages.value = true;
 
   get(`/chats/getChats/${userId}/${myuser.id}/${currentPage.value}/${pageSize.value}`, (message, data) => {
-    totalMessages.value = data.total; // 总消息数
+    totalMessages.value = data.total;
     if (data.records && data.records.length > 0) {
-      chatList.value = [...data.records.map(formatMessage), ...chatList.value]; // 在顶部加载新数据
+      chatList.value = [...data.records.map(formatMessage), ...chatList.value];
     }
     if (data.total <= chatList.value.length) {
       showLoadMore.value = false;
     }
-    loadingMessages.value = false; // 加载完成
+    loadingMessages.value = false;
   });
 };
 
@@ -274,9 +274,9 @@ const askClick = (val) => {
       fromId: myuser.id,
       toId: userId,
     }, (message, data) => {
-      question.value = ""; // 发送后清空输入框
-      chatList.value = []; // 清空历史记录
-      currentPage.value = 1; // 重置页码为 1
+      question.value = "";
+      chatList.value = [];
+      currentPage.value = 1;
       fetchHistoryMessages();
     });
   } else {
@@ -294,22 +294,22 @@ const onScroll = () => {
 };
 
 const loadMoreHistory = () => {
-  currentPage.value++; // 增加页码
-  fetchHistoryMessages(); // 加载更多聊天记录
+  currentPage.value++;
+  fetchHistoryMessages();
 };
 
-let intervalId = null; // 页面加载时初始化历史消息
+let intervalId = null;
 
 onMounted(() => {
-  chatList.value = []; // 清空历史记录
-  currentPage.value = 1; // 重置页码为 1
+  chatList.value = [];
+  currentPage.value = 1;
   fetchUser();
-  fetchHistoryMessages(); // 加载初始历史消息
+  fetchHistoryMessages();
   intervalId = setInterval(() => {
-    chatList.value = []; // 清空历史记录
-    currentPage.value = 1; // 重置页码为 1
+    chatList.value = [];
+    currentPage.value = 1;
     fetchHistoryMessages(); // 定时刷新聊天记录
-  }, 60000); // 60秒
+  }, 60000);
   scrollToBottom();
 });
 
@@ -318,15 +318,15 @@ const formatSendTime = (sendTime) => {
   const now = new Date();
   const sendDate = new Date(sendTime);
 
-  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 当前日期（去除时间部分）
-  const sendDateAtMidnight = new Date(sendDate.getFullYear(), sendDate.getMonth(), sendDate.getDate()); // 消息的日期（去除时间部分）
+  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const sendDateAtMidnight = new Date(sendDate.getFullYear(), sendDate.getMonth(), sendDate.getDate());
 
-  const timeDiff = now - sendDateAtMidnight; // 比较日期差异
+  const timeDiff = now - sendDateAtMidnight;
   const oneDay = 24 * 60 * 60 * 1000;
 
   if (timeDiff < oneDay) {
     return `今天 ${formatTime(sendDate)}`;
-  } else if (timeDiff < 2 * oneDay) { // 如果时间差小于两天，显示昨天
+  } else if (timeDiff < 2 * oneDay) {
     return `昨天 ${formatTime(sendDate)}`;
   } else {
     return sendDate.toLocaleDateString("zh-CN", {
@@ -354,9 +354,9 @@ const scrollToBottom = () => {
 watch(
     () => route.params.userId,  // 监听路由参数变化
     (newUserId) => {
-      userId = newUserId;  // 更新 userId
-      fetchUser();  // 重新获取用户信息
-      currentPage.value = 1; // 重置分页页码
+      userId = newUserId;
+      fetchUser();
+      currentPage.value = 1;
       chatList.value = []
       fetchHistoryMessages()
     },
@@ -434,7 +434,6 @@ onBeforeUnmount(() => {
   padding: 5px;
 }
 
-/* Time display for chat */
 .chat_time {
   font-size: 12px;
   color: #888;
@@ -641,10 +640,10 @@ onBeforeUnmount(() => {
 }
 
 .message-image {
-  max-width: 300px; /* 设置图片最大宽度 */
-  max-height: 200px; /* 设置图片最大高度 */
-  width: 100%; /* 让图片根据容器宽度自适应 */
-  height: auto; /* 保持图片的纵横比 */
+  max-width: 300px;
+  max-height: 200px;
+  width: 100%;
+  height: auto;
   border-radius: 8px;
   margin-top: 10px;
 }
@@ -671,7 +670,6 @@ onBeforeUnmount(() => {
 }
 
 
-/* wuxiao 状态时的内容 */
 .wuxiao-content {
   display: flex;
   flex-direction: column;

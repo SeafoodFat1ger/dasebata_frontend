@@ -8,7 +8,6 @@
       <el-form :model="form" :rules="rules" ref="formRef">
         <el-form-item prop="username">
           <el-input v-model="form.username" :maxlength="8" type="text" placeholder="用户名">
-            <!--给输入框引入一个图标-->
             <template #prefix>
               <el-icon>
                 <User />
@@ -18,7 +17,6 @@
         </el-form-item>
         <el-form-item prop="password">
           <el-input v-model="form.password" :maxlength="16" type="password" style="margin-top: 20px" placeholder="密码">
-            <!--给输入框引入一个图标-->
             <template #prefix>
               <el-icon>
                 <Lock />
@@ -29,7 +27,6 @@
         <el-form-item prop="password_repeat">
           <el-input v-model="form.password_repeat" :maxlength="16" type="password" style="margin-top: 20px"
             placeholder="再次输入密码">
-            <!--给输入框引入一个图标-->
             <template #prefix>
               <el-icon>
                 <Lock />
@@ -39,7 +36,6 @@
         </el-form-item>
         <el-form-item prop="email">
           <el-input v-model="form.email" type="email" style="margin-top: 20px" placeholder="电子邮箱地址">
-            <!--给输入框引入一个图标-->
             <template #prefix>
               <el-icon>
                 <Message />
@@ -73,12 +69,10 @@ const form = reactive({
   email: '',
   code: ''
 })
-//校验“用户名输入框”不能有特殊字符
 const validateUsername = (rule, value, callback) => {
   if (value === '') {
     callback(new Error('请输入用户名'));
   } else {
-    //用正则表达式判断更方便。（以下正则表达式含义：包含中文英文的用户名，不能有特殊字符）
     if (!/^[a-zA-Z0-9\u4e00-\u9fa5]+$/.test(value)) {
       callback(new Error('用户名不能包含特殊字符，只能是中文/英文'));
     } else {
@@ -96,7 +90,7 @@ const validatePassword = (rule, value, callback) => {
     callback();
   }
 };
-//制定校验规则
+
 const rules = {
   username: [
     { validator: validateUsername, trigger: ['blur', 'change'] },
@@ -114,13 +108,10 @@ const rules = {
     { type: 'email', message: '请输入合法的电子邮箱地址', trigger: ['blur', 'change'] }
   ],
 }
-//定义对整个表单进行响应的变量
 const formRef = ref()
 
-//绑定给注册按钮的
 const register = () => {
   formRef.value.validate((isValid) => {
-    //只有整个el-form表单完整无误，才能向后端发送注册请求，携带四个参数
     if (isValid) {
       post("/users/register", {
         username: form.username,
@@ -131,7 +122,8 @@ const register = () => {
         ElMessage.success(message)
         router.push('/')
       })
-    } else {//填写表单有误，不能向后端发送post请求
+    } else {
+      //填写表单有误
       ElMessage.warning('请完整填写注册表单内容')
     }
   })

@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import '@wangeditor/editor/dist/css/style.css' // 引入 css
+import '@wangeditor/editor/dist/css/style.css'
 
 import {onBeforeUnmount, ref, shallowRef, onMounted, watch} from 'vue'
 import {Editor, Toolbar} from '@wangeditor/editor-for-vue'

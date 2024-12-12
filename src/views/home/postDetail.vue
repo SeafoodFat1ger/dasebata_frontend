@@ -117,10 +117,10 @@ export default {
     TopHeader,
   },
   setup() {
-    const route = useRoute(); // 使用 useRoute 钩子获取路由信息
+    const route = useRoute();
     const wuxiaoPost = ref(false);
     const userId = store.auth.user.id;
-    const postId = route.params.id; // 获取帖子 ID
+    const postId = route.params.id; // 帖子 ID
     const postDetail = ref({});
     const colors = [
       'rgba(252,228,236,0.42)', // 颜色1
@@ -399,11 +399,11 @@ export default {
 /* 全局样式 */
 .post-content img {
   width: 70%;
-  height: auto; /* 保持图片的纵横比 */
-  object-fit: cover; /* 保证图片在50%的宽度内不会变形 */
-  margin: 10px 0; /* 添加一些上下边距来提高视觉效果 */
-  display: block; /* 确保图片为块级元素，便于控制 */
-  max-width: 100%; /* 防止图片超出容器 */
+  height: auto;
+  object-fit: cover;
+  margin: 10px 0;
+  display: block;
+  max-width: 100%;
 }
 
 body {
@@ -488,7 +488,7 @@ body {
 
 .action-button {
   background-color: #fff;
-  border: 2px solid #dadada; /* 默认没有边框 */
+  border: 2px solid #dadada;
   border-radius: 10px;
   padding: 3px 3px;
   font-size: 14px;
@@ -502,12 +502,10 @@ body {
   width: 80px;
 }
 
-/* 删除按钮的样式 */
 .action-button.delete {
   color: #d9534f;
 }
 
-/* 添加每个按钮的颜色变化 */
 .action-button .icon {
   font-size: 18px;
   transition: transform 0.2s ease;
@@ -517,14 +515,12 @@ body {
   transform: scale(1.2); /* 鼠标悬停时图标放大 */
 }
 
-/* "点赞" 按钮被点击时的样式 */
 .action-button.liked {
-  border-color: red; /* 当isLiked为true时，边框变为红色 */
-  background-color: rgba(255, 211, 211, 0.87); /* 让背景色更清爽 */
-  color: red; /* 改变文本和图标的颜色 */
+  border-color: red;
+  background-color: rgba(255, 211, 211, 0.87);
+  color: red;
 }
 
-/* "收藏" 按钮 */
 .action-button.bookmarked {
   background-color: rgba(255, 239, 194, 0.75);
   color: #735800;
@@ -592,7 +588,6 @@ textarea {
   background-color: #3077C1;
 }
 
-/* 评论区 */
 .comments {
   margin-top: 20px;
   display: flex;
@@ -607,27 +602,25 @@ textarea {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 添加柔和的阴影 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .comment-card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* 更深的阴影 */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   cursor: pointer;
 }
 
-/* 评论头像 */
 .comment-avatar {
   margin-top: 10px;
   margin-left: 10px;
   width: 50px;
   height: 50px;
-  border-radius: 50%; /* 圆形头像 */
+  border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #464646; /* 轻微的边框 */
+  border: 2px solid #464646;
 }
 
-/* 评论作者 */
 .comment-author {
   font-size: 14px;
   font-weight: bold;
@@ -640,17 +633,14 @@ textarea {
 .comment-date {
   font-size: 12px;
   color: #797979;
-  /* 分别设置 top, right, bottom, left 的 padding */
   margin: 30px 20px 0px 0px;
 }
 
 .comment-content {
   width: 800px;
-  /* 分别设置 top, right, bottom, left 的 padding */
   margin: 20px 10px 20px 20px;
 }
 
-/* 评论内容 */
 .comment-content p {
   font-size: 20px;
   color: #2d2d2d;
@@ -660,7 +650,7 @@ textarea {
 .delete-comment-btn {
   color: #d9534f;
   background-color: #fff;
-  border: 2px solid #dadada; /* 默认没有边框 */
+  border: 2px solid #dadada;
   border-radius: 10px;
   padding: 3px 3px;
   font-size: 14px;

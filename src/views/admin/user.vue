@@ -49,7 +49,7 @@
 
               type="danger"
               @click="deletePost(scope.row)"
-          >删除内容
+          >删除用户
           </el-button>
         </template>
       </el-table-column>
@@ -105,14 +105,14 @@ export default {
 
     const formatDate = (timestamp) =>{
       if (!timestamp) return '没有访问过本网站';
-      const date = new Date(timestamp); // 直接将 ISO 字符串传给 Date 对象
-      return date.toLocaleString(); // 使用默认的本地化格式
+      const date = new Date(timestamp);
+      return date.toLocaleString();
     }
 
 
 
-    // 获取帖子列表数据
-    const fetchPosts = async (page = 1, pageSize = 10) => {
+    // 获取用户列表数据
+    const fetchUser = async (page = 1, pageSize = 10) => {
       get(`/users/getAll/${page}/${pageSize}`, (message, data) => {
         posts.value = data.records;
         total.value = data.total;
@@ -122,16 +122,16 @@ export default {
     // 页码变化
     const handlePageSizeChange = async (pageSizes) => {
       currentPageSize.value = pageSizes;
-      await fetchPosts(currentPage.value, currentPageSize.value);
+      await fetchUser(currentPage.value, currentPageSize.value);
     };
 
     const handlePageChange = async (page) => {
       currentPage.value = page;
-      await fetchPosts(page, currentPageSize.value);
+      await fetchUser(page, currentPageSize.value);
     };
 
-    // 查看帖子详情
-    const gotoPost = async (id) => {
+    // 查看用户详情
+    const gotoUser = async (id) => {
 
 
       const url = router.resolve({
@@ -140,10 +140,10 @@ export default {
       window.open(url.href);
     };
 
-    // 删除帖子
+    // 删除用户
     const deletePost = async (user) => {
       try {
-        // 管理员进行删帖，弹出确认框
+        // 管理员进行删用户，弹出确认框
         const confirmDelete = await ElMessageBox.confirm(
             "尊敬的管理员您好，确定要删除这个用户吗?",
             "删除确认", // 标题
@@ -163,7 +163,7 @@ export default {
           // 调用后端删除接口
           post(`/users/delete/${user.id}`, data, (message, data) => {
             ElMessage.success("用户删除成功");
-            fetchPosts(currentPage.value, currentPageSize.value);
+            fetchUser(currentPage.value, currentPageSize.value);
           });
         }
       } catch (error) {
@@ -175,8 +175,7 @@ export default {
     }
 
 
-    // 在组件挂载时获取初始数据
-    fetchPosts(currentPage.value, currentPageSize.value);
+    fetchUser(currentPage.value, currentPageSize.value);
 
     return {
       formatDate,
@@ -189,7 +188,7 @@ export default {
       background,
       handlePageSizeChange,
       handlePageChange,
-      gotoPost,
+      gotoPost: gotoUser,
       deletePost,
 
 

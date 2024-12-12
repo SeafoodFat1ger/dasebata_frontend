@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <div class="content">
-      <!-- Search Bar -->
       <div class="contacts">
 
         <el-input
@@ -27,7 +26,6 @@
         </div>
       </div>
 
-      <!-- Message Box Section -->
       <router-view></router-view>
     </div>
   </div>
@@ -75,11 +73,11 @@ const clearSearch = () => {
 
 // 跳转到聊天页面
 const gotoChat = (id) => {
-  router.push(`/home/chats/${id}`); // 路由跳转
+  router.push(`/home/chats/${id}`);
 };
 
 onMounted(() => {
-  fetchContacts(); // 组件挂载后获取联系人
+  fetchContacts();
 });
 
 </script>
@@ -141,9 +139,9 @@ onMounted(() => {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  height: 100%; /* 高度占满容器 */
-  overflow-y: auto; /* 启用垂直滚动 */
-  padding-bottom: 10px; /* 确保有足够的底部空间来滚动 */
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 10px;
 }
 
 h2 {

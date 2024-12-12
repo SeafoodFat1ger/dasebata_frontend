@@ -48,7 +48,8 @@
     <el-main>
       <div style="display: flex; justify-content: flex-start; flex-wrap: wrap;
            gap: 10px; padding: 10px;">
-        <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true" :color="'rgba(228,231,255,0.82)'"/>
+        <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"
+                  :color="'rgba(228,231,255,0.82)'"/>
       </div>
 
       <div style="display: flex; justify-content: center; margin-top: 20px;">
@@ -116,45 +117,10 @@
         </el-tag>
       </el-form-item>
 
-
-<!--      <el-form-item label="图片">-->
-<!--        <el-upload-->
-<!--            list-type="picture-card"-->
-<!--            :action="'http://47.93.187.154:8082/posts/uploadImg'"-->
-<!--            :on-change="handleChange"-->
-<!--            :before-remove="beforeRemove"-->
-<!--            :on-preview="handlePictureCardPreview"-->
-<!--            :file-list="fileList.front_file"-->
-<!--            multiple-->
-<!--            :limit="1"-->
-<!--            :on-exceed="handleExceed"-->
-<!--            :before-upload="beforeUpload"-->
-<!--            name="img"-->
-<!--        >-->
-<!--        </el-upload>-->
-<!--      </el-form-item>-->
-
-
     </el-form>
 
 
     <myEditor @update:content="updateContent"/>
-
-    <!-- 预览图片的弹窗 -->
-    <el-dialog
-        v-model="previewDialogVisible"
-        :visible.sync="previewDialogVisible"
-        :title="previewTitle"
-        :width="'50%'"
-        :before-close="handleClosePreview"
-    >
-      <img
-          v-if="previewImage"
-          :src="previewImage"
-          alt="Preview Image"
-          class="preview-image"
-      />
-    </el-dialog>
 
     <div class="demo-drawer__footer">
       <el-button @click="cancelForm">Cancel</el-button>
@@ -233,12 +199,12 @@ export default {
     }
 
     const submitPost = async () => {
-      if (!form.postTitle || !form.postArea || !form.postContent ) {
+      if (!form.postTitle || !form.postArea || !form.postContent) {
         ElMessage.warning("请填写完整问题信息")
         return
       }
-      if(!form.avatar){
-        form.avatar='null';
+      if (!form.avatar) {
+        form.avatar = 'null';
       }
       if (tags.value.length > 5) {
         ElMessage.warning("话题数不能多于5个");
@@ -269,14 +235,14 @@ export default {
             ElMessage.success(message)
             drawer.value = false;
             fetchPosts(activeArea.value, 1);
-            pid=data;
+            pid = data;
             if (isNoticePost.value) {
               // 将信息发给所有人
               const reqData = {
-                message: "管理员发公告了！快去查看吧！ "+"http://39.105.0.52/home/postDetail/"+pid,
+                message: "管理员发公告了！快去查看吧！ " + "http://39.105.0.52/home/postDetail/" + pid,
                 fromId: 3,
               };
-              post(`/chats/addAll`, reqData, (message)=>{
+              post(`/chats/addAll`, reqData, (message) => {
                 isNoticePost.value = false;
                 ElMessage("群发成功");
               })
@@ -293,13 +259,13 @@ export default {
 
     const handlePageSizeChange = async (pageSizes) => {
       currentPageSize.value = pageSizes;
-      await fetchPosts(activeArea.value, currentPage.value); // 请求新数据
+      await fetchPosts(activeArea.value, currentPage.value);
     }
 
 
     const handlePageChange = async (page) => {
       currentPage.value = page;
-      await fetchPosts(activeArea.value, page); // 请求新数据
+      await fetchPosts(activeArea.value, page);
     };
 
     const updateContent = async (newContent) => {
@@ -323,12 +289,10 @@ export default {
 
       get(`/posts/find/tag/${queryString}`, (message, data) => {
             gameList.value = data.records.map((tag, index) => ({
-              id: index + 1,  // 使用索引生成唯一 id
-              name: tag       // 将标签作为 name
+              id: index + 1,
+              name: tag
             }));
             tagSuggestions.value = data.records
-            // console.log(tagSuggestions.value)
-            // console.log(gameList.value)
             cb(gameList.value)
 
             isNewTagVisible.value = true
@@ -356,67 +320,8 @@ export default {
       tags.value = tags.value.filter(t => t !== tag);
     }
 
-    // 在组件挂载时获取初始数据
     fetchPosts();
 
-
-    // 上传图片
-    const fileList = ref([]);
-    const handleChange = file => {
-      if (file.status == "success") {
-        fileList.value = [];
-        fileList.value.push(file.response);
-        form.avatar = file.response.data;
-      }
-    };
-    // 删除
-    const beforeRemove = () => {
-      const result = new Promise((resolve, reject) => {
-        ElMessageBox.confirm("此操作将删除该图片, 是否继续?", "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        })
-            .then(() => {
-              resolve();
-              form.avatar = '';
-            })
-            .catch(() => {
-              reject(false);
-            });
-      });
-      return result;
-    };
-
-    const handleExceed = () => {
-      ElMessage("只能上传一张");
-    }
-
-    const previewDialogVisible = ref(false);  // 控制预览弹窗显示
-    const previewImage = ref('');  // 存储预览的图片
-    const previewTitle = ref('图片预览');  // 预览图片的标题
-
-    const handlePictureCardPreview = (file) => {
-      // 获取点击的图片，并设置为预览图片
-      previewImage.value = file.url || URL.createObjectURL(file.raw);
-      previewDialogVisible.value = true; // 打开图片预览弹窗
-    };
-    const handleClosePreview = () => {
-      previewDialogVisible.value = false;
-    };
-    const beforeUpload = (file) => {
-      const isJpgOrPng = ['image/jpeg', 'image/png'].includes(file.type);
-      const isLt2M = file.size / 1024 / 1024 < 2; // 限制文件大小为 2MB
-
-      if (!isJpgOrPng) {
-        ElMessage.error('上传头像图片只能是 JPG 或 PNG 格式!');
-      }
-      if (!isLt2M) {
-        ElMessage.error('上传头像图片大小不能超过 2MB!');
-      }
-
-      return isJpgOrPng && isLt2M;  // 如果格式和大小都符合，返回 true 继续上传
-    };
 
     return {
       activeArea,
@@ -448,16 +353,6 @@ export default {
       querySearchAsync,
       addNotice,
 
-      fileList,
-      handleChange,
-      beforeRemove,
-      handleExceed,
-      previewDialogVisible,
-      previewTitle,
-      handleClosePreview,
-      previewImage,
-      handlePictureCardPreview,
-      beforeUpload
     };
   }
 }
@@ -468,7 +363,7 @@ export default {
 
 /* 整体侧边栏样式 */
 .sidebar {
-  background-color: #ffffff;  /* 浅蓝色背景 */
+  background-color: #ffffff; /* 浅蓝色背景 */
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
@@ -479,7 +374,7 @@ export default {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* 按钮样式 */
+
 .action-btn {
   background-color: rgba(78, 115, 223, 0.2);
   color: #4e73df;
@@ -501,7 +396,6 @@ export default {
   outline: none;
 }
 
-/* 发起公告按钮样式 */
 .notice-btn {
   background-color: rgba(220, 169, 251, 0.6);
   color: #af27ff;
@@ -524,7 +418,6 @@ export default {
   outline: none;
 }
 
-/* El-menu 样式 */
 .el-menu-vertical-demo {
   background-color: #f2f5fa;
   border-radius: 8px;
@@ -533,9 +426,8 @@ export default {
   padding-top: 10px;
 }
 
-/* 每个菜单项的渐变背景 */
 .sidebar {
-  background-color: #f4f7fc;  /* 浅蓝色背景 */
+  background-color: #f4f7fc;
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
@@ -546,7 +438,7 @@ export default {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* 按钮样式 */
+
 .action-btn {
   width: 100%;
   margin-left: 0;
@@ -565,7 +457,7 @@ export default {
   outline: none;
 }
 
-/* 自定义菜单 */
+
 .custom-menu {
   margin-top: 20px;
 }
@@ -579,18 +471,19 @@ export default {
   cursor: pointer;
   margin: 5px 0;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, rgba(194, 214, 246, 0.62), rgba(243, 213, 255, 0.72));  /* 蓝紫渐变 */
+  background: linear-gradient(135deg, rgba(194, 214, 246, 0.62), rgba(243, 213, 255, 0.72)); /* 蓝紫渐变 */
 }
 
 .custom-menu-item:hover {
   background: linear-gradient(135deg, rgba(123, 166, 234, 0.73), #E4A0FFE5); /* 悬停时的渐变效果 */
-  transform: translateY(-2px);  /* 悬停时上移 */
+  transform: translateY(-2px); /* 悬停时上移 */
 }
+
 .custom-menu-item.active {
   background: linear-gradient(135deg, rgba(123, 166, 234, 0.73), #E4A0FFE5); /* 点击后的深色渐变 */
 }
 
-/***********/
+
 .content {
   padding-top: 60px;
 }

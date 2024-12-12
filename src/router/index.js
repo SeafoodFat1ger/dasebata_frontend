@@ -4,12 +4,12 @@ import {useStore} from "@/stores/index.js";
 // 定义路由
 const router = createRouter({ // 创建路由实例
     history: createWebHistory(import.meta.env.BASE_URL),
-    routes: [ // 定义所有路由路径的配置，每个路径都映射到相应的组件
-        { // 根路径(/) 和子路由
-            path: '/',  // 根路径 /
+    routes: [
+        {
+            path: '/',
             name: 'welcome',
             component: () => import('../views/WelcomeViews.vue'),
-            children: [ // 定义子路由 在/路径下进一步匹配的路径
+            children: [
                 {
                     path: '',
                     name: 'login',
@@ -29,7 +29,7 @@ const router = createRouter({ // 创建路由实例
                 {
                     path: 'jubao',
                     name: 'jubao',
-                    component: () => import('../views/admin/jubao.vue'),
+                    component: () => import('../views/admin/user.vue'),
                 },
                 {
                     path: 'post',

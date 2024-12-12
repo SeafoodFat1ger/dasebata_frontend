@@ -24,44 +24,42 @@ export default {
   },
   data() {
     return {
-      posts: [], // 存储所有加载的帖子数据
-      currentPage: 1, // 当前页码
-      pageSize: 10, // 每页加载的记录数
-      total: 0, // 记录总数
-      loading: false, // 是否正在加载
-      finished: false // 是否加载完成
+      posts: [],
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
+      loading: false,
+      finished: false
     };
   },
   methods: {
     async fetchPosts() {
-      if (this.loading || this.finished) return; // 如果正在加载或已经加载完毕，则不再触发请求
+      if (this.loading || this.finished) return;
 
       this.loading = true;
 
-      // 假设后台接口类似 `/posts/user/{userId}/{pageNumber}/{pageSize}`
       get(`/posts/user/post/${this.userId}/${this.currentPage}/${this.pageSize}`, (message, data) => {
         this.posts.push(...data.records); // 将新数据追加到现有数组
         this.total = data.total;
 
-        // 判断是否已经加载完所有数据
         if (this.posts.length >= this.total) {
           this.finished = true;
         } else {
-          this.currentPage += 1; // 更新页码
+          this.currentPage += 1;
         }
 
         this.loading = false;
       });
     },
     handleScroll() {
-      const container = this.$el; // 获取当前元素
+      const container = this.$el;
       if (container.scrollTop + container.clientHeight >= container.scrollHeight - 10) {
-        this.fetchPosts(); // 滚动到底部时触发加载更多数据
+        this.fetchPosts();
       }
     }
   },
   mounted() {
-    this.fetchPosts(); // 初始化加载第一页数据
+    this.fetchPosts();
   }
 };
 </script>

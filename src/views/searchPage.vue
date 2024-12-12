@@ -62,10 +62,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { ElMessage, ElButton, ElCard } from 'element-plus';
-import { get } from '@/net/index.js';
+import {ref, onMounted, watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {ElMessage, ElButton, ElCard} from 'element-plus';
+import {get} from '@/net/index.js';
 import PostItem from "@/components/PostItem.vue";
 
 const route = useRoute();
@@ -108,7 +108,7 @@ const goToDetail = (id) => {
   router.push(`/home/profile/${id}`)
 };
 
-// 返回上一页
+
 const goBack = () => {
   window.history.back()
 };
@@ -122,7 +122,7 @@ watch(() => route.query.query, (newQuery) => {
   fetchSearchResults();
 });
 
-// 页面初始化时加载搜索结果
+
 onMounted(() => {
   fetchSearchResults();
 });
@@ -160,8 +160,8 @@ onMounted(() => {
   display: flex;
   gap: 5px;
   justify-content: space-between;
-  flex-wrap: wrap; /* 支持响应式布局 */
-  max-width: 100%; /* 保证不会超出父容器 */
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .results-column {
@@ -195,30 +195,30 @@ h2 {
 
 .post-items-container {
   display: flex;
-  justify-content: center; /* 水平居中 */
-  flex-wrap: wrap; /* 支持换行 */
-  gap: 3px; /* 子元素之间的间距 */
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 3px;
   padding: 5px;
-  max-width: 100%; /* 保证不会超出父容器 */
+  max-width: 100%;
   box-sizing: border-box;
   margin: 10px 10px;
 }
 
 .result-item {
-  margin-bottom: 10px; /* 给每个卡片之间添加间距 */
+  margin-bottom: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .result-card {
-  border-radius: 12px; /* 卡片圆角 */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* 卡片阴影 */
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 100%;
-  max-width: 700px; /* 最大宽度，防止卡片过大 */
-  margin: 0 auto; /* 使卡片居中 */
-  background: linear-gradient(135deg, rgba(194, 214, 246, 0.44), rgba(236, 255, 213, 0.51)); /* 渐变背景 */
+  max-width: 700px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, rgba(194, 214, 246, 0.44), rgba(236, 255, 213, 0.51));
 }
 
 

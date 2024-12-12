@@ -11,7 +11,6 @@
     </div>
     <!--右侧-->
     <div style="width: 450px;text-align: center;background-color: white;z-index: 1">
-      <!--根据路由切换展示的组件-->
       <router-view v-slot = "{Component}">
         <transition name="el-fade-in-linear">
           <component :is="Component" style="height: 100%"/>

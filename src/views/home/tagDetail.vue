@@ -17,7 +17,7 @@
             type="primary"
             @click="drawer = true"
             size="large"
-            >
+        >
           发帖/提问
         </el-button>
       </div>
@@ -30,22 +30,22 @@
 
         <el-tab-pane label="帖子" name="articles">
           <div style="display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 10px; padding: 10px;"
-              @scroll="onScroll" ref="postList">
+               @scroll="onScroll" ref="postList">
             <PostItem v-for="post in posts" :key="post.postId" :post="post" :needTag="true"/>
           </div>
         </el-tab-pane>
 
         <el-tab-pane label="提问" name="questions">
           <div style="display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 10px; padding: 10px;"
-           @scroll="onScroll" ref="postList">
-            <PostItem v-for="post in questions" :key="post.postId" :post="post" :needTag="true" :color="'rgba(228,231,255,0.82)'"/>
+               @scroll="onScroll" ref="postList">
+            <PostItem v-for="post in questions" :key="post.postId" :post="post" :needTag="true"
+                      :color="'rgba(228,231,255,0.82)'"/>
           </div>
         </el-tab-pane>
       </el-tabs>
     </el-card>
   </div>
 
-  <!--rich text-->
   <el-drawer v-model="drawer" size="80%" direction="btt" title="发布帖子">
     <el-form :model="form">
       <el-form-item label="标题">
@@ -68,48 +68,10 @@
         <el-tag>{{ tagStr }}</el-tag>
       </el-form-item>
 
-      <el-form-item label="图片">
-        <el-upload
-            list-type="picture-card"
-            :action="'http://47.93.187.154:8082/posts/uploadImg'"
-            :on-change="handleChange"
-            :before-remove="beforeRemove"
-            :on-preview="handlePictureCardPreview"
-            :file-list="fileList.front_file"
-            multiple
-            :limit="1"
-            :on-exceed="handleExceed"
-            :before-upload="beforeUpload"
-            name="img"
-        >
-        </el-upload>
-      </el-form-item>
-
-
     </el-form>
 
 
     <myEditor @update:content="updateContent"/>
-    <div>
-      <h3>当前内容:</h3>
-      <div v-html="form.postContent"></div>
-    </div>
-
-    <!-- 预览图片的弹窗 -->
-    <el-dialog
-        v-model="previewDialogVisible"
-        :visible.sync="previewDialogVisible"
-        :title="previewTitle"
-        :width="'50%'"
-        :before-close="handleClosePreview"
-    >
-      <img
-          v-if="previewImage"
-          :src="previewImage"
-          alt="Preview Image"
-          class="preview-image"
-      />
-    </el-dialog>
 
     <div class="demo-drawer__footer">
       <el-button @click="cancelForm">Cancel</el-button>
@@ -123,7 +85,7 @@ import {reactive, ref, computed, onMounted, watch} from "vue";
 import TopHeader from "@/views/TopHeader.vue";
 import {useRoute} from "vue-router";
 import PostItem from "@/components/PostItem.vue";
-import {get} from "@/net/index.js";
+import {get, post} from "@/net/index.js";
 import myEditor from "@/components/Editor.vue";
 import {ElMessage, ElMessageBox, ElTag} from "element-plus";
 import {useStore} from "@/stores";
@@ -160,7 +122,7 @@ export default {
       if (loadingPost.value) return;  // 如果正在加载，直接返回
       loadingPost.value = true;  // 设置为加载状态
       get(`/posts/getTag/post/${tagStr.value}/${pageNumber}/10`, (message, data) => {
-        posts.value.push(...data.records);  // 新的帖子添加到原来列表中
+        posts.value.push(...data.records);
         totalPosts.value = data.total;
         loadingPost.value = false;  // 数据加载完成
       });
@@ -177,7 +139,6 @@ export default {
     };
 
     const onScroll = (event) => {
-      // 获取容器的总高度、已滚动的高度和可视区域的高度
       const scrollHeight = event.target.scrollHeight;
       const scrollTop = event.target.scrollTop;
       const clientHeight = event.target.clientHeight;
@@ -188,11 +149,11 @@ export default {
 
       if (bottom && !loadingPost.value) {
         if (activeTab.value === "articles") {
-          const currentPage = Math.ceil(posts.value.length / 10); // 计算当前页数
-          fetchPosts(currentPage + 1);  // 加载下一页的帖子
+          const currentPage = Math.ceil(posts.value.length / 10);
+          fetchPosts(currentPage + 1);
         } else {
-          const currentPage = Math.ceil(questions.value.length / 10); // 计算当前页数
-          fetchProblem(currentPage + 1);  // 加载下一页的提问
+          const currentPage = Math.ceil(questions.value.length / 10);
+          fetchProblem(currentPage + 1);
         }
       }
     };
@@ -214,17 +175,22 @@ export default {
         return
       }
 
-      if(!form.avatar){
+      if (!form.avatar) {
         form.avatar = 'http://47.93.187.154:8082/imgview/1733126975372tmp.png';
       }
       const userId = store.auth.user.id;
-
+      let postType = "post";
+      if (activeTab.value === "articles") {
+        postType = "post";
+      } else {
+        postType = "problem"
+      }
       const requestData = {
         "userId": userId,
         "postTitle": form.postTitle,
         "postArea": form.postArea,
-        "postTags": tags.value,
-        "postType": "post",
+        "postTags": [tagStr.value],
+        "postType": postType,
         "postContents": [
           {
             "type": "text",
@@ -236,73 +202,16 @@ export default {
           },
         ]
       }
+
+      console.log(requestData)
       post(`/posts/add`, requestData,
           (message) => {
             ElMessage.success(message)
-            drawer.value = false;
-            fetchPosts(activeArea.value, 1);
+            //drawer.value = false;
+            fetchPosts(1);
           }
       )
 
-    };
-
-
-    // 上传图片
-    const fileList = ref([]);
-    const handleChange = file => {
-      if (file.status == "success") {
-        fileList.value = [];
-        fileList.value.push(file.response);
-        form.avatar = file.response.data;
-      }
-    };
-    // 删除
-    const beforeRemove = () => {
-      const result = new Promise((resolve, reject) => {
-        ElMessageBox.confirm("此操作将删除该图片, 是否继续?", "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        })
-            .then(() => {
-              resolve();
-              form.avatar = '';
-            })
-            .catch(() => {
-              reject(false);
-            });
-      });
-      return result;
-    };
-
-    const handleExceed = () => {
-      ElMessage("只能上传一张");
-    }
-
-    const previewDialogVisible = ref(false);  // 控制预览弹窗显示
-    const previewImage = ref('');  // 存储预览的图片
-    const previewTitle = ref('图片预览');  // 预览图片的标题
-
-    const handlePictureCardPreview = (file) => {
-      // 获取点击的图片，并设置为预览图片
-      previewImage.value = file.url || URL.createObjectURL(file.raw);
-      previewDialogVisible.value = true; // 打开图片预览弹窗
-    };
-    const handleClosePreview = () => {
-      previewDialogVisible.value = false;
-    };
-    const beforeUpload = (file) => {
-      const isJpgOrPng = ['image/jpeg', 'image/png'].includes(file.type);
-      const isLt2M = file.size / 1024 / 1024 < 2; // 限制文件大小为 2MB
-
-      if (!isJpgOrPng) {
-        ElMessage.error('上传头像图片只能是 JPG 或 PNG 格式!');
-      }
-      if (!isLt2M) {
-        ElMessage.error('上传头像图片大小不能超过 2MB!');
-      }
-
-      return isJpgOrPng && isLt2M;  // 如果格式和大小都符合，返回 true 继续上传
     };
 
 
@@ -330,17 +239,6 @@ export default {
       submitPost,
       updateContent,
 
-
-      fileList,
-      handleChange,
-      beforeRemove,
-      handleExceed,
-      previewDialogVisible,
-      previewTitle,
-      handleClosePreview,
-      previewImage,
-      handlePictureCardPreview,
-      beforeUpload
     };
   },
 };
@@ -363,13 +261,12 @@ export default {
   box-shadow: 0 2px 8px rgba(129, 122, 122, 0.1);
 }
 
-/* 标题和描述卡片样式 */
+
 .header-card .header-content {
   display: flex;
   justify-content: space-between;
 }
 
-/* 标题部分 */
 .header-content h1 {
   font-size: 24px;
   color: #333;
@@ -385,7 +282,7 @@ export default {
   padding: 20px 10px;
 }
 
-/* 按钮样式 */
+
 .el-button {
   border-radius: 7px;
   background-color: rgba(232, 241, 255, 0.24);
@@ -401,7 +298,7 @@ export default {
 
 .el-button:hover {
   background-color: #c8e4ff;
-  transform: translateY(-2px);  /* 鼠标悬停时上浮效果 */
+  transform: translateY(-2px); /* 鼠标悬停时上浮效果 */
 }
 
 .el-button:active {
@@ -409,22 +306,22 @@ export default {
   transform: translateY(0);
 }
 
-/* 边距 */
+
 .el-button {
   margin-left: 10px;
 }
 
-/* 更细致的布局控制 */
+
 .header-content div {
   flex-grow: 1;
 }
 
-/* 使文本元素的对齐方式更加紧凑 */
+
 .header-content div span {
   margin-left: 10px;
 }
 
-/* 提问和文章列表卡片样式 */
+
 .content-card .content-header {
   display: flex;
   justify-content: space-between;
@@ -433,7 +330,7 @@ export default {
 }
 
 .post-list {
-  max-height: 600px; /* 限制最大高度 */
-  overflow-y: auto; /* 允许垂直滚动 */
+  max-height: 600px;
+  overflow-y: auto;
 }
 </style>

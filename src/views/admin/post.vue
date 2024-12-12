@@ -5,7 +5,7 @@
 
     <h2>内容管理</h2>
 
-    <!-- 举报筛选区域 -->
+    <!-- 帖子筛选区域 -->
     <el-row class="filter-row" :gutter="20">
 
 
@@ -32,7 +32,7 @@
       </el-col>
     </el-row>
 
-    <!-- 举报列表 -->
+    <!-- 帖子列表 -->
     <el-table
         :data="posts"
         style="width: 100%; margin-top: 20px;"
@@ -129,7 +129,7 @@ export default {
     const background = ref(true);
     const disabled = ref(false);
     const activeArea = ref(0);
-    const postType = ref('post');  // 你可以根据需求修改这个值
+    const postType = ref('post');
 
     const filters = ref({
       reportType: "0",
@@ -177,7 +177,6 @@ export default {
         fromId: 3,
         toId: toId,
       }, (message, data) => {
-        //ElMessage("不能发送空白消息");
       });
     }
 
@@ -202,7 +201,6 @@ export default {
 
     }
 
-    // 在组件挂载时获取初始数据
     fetchPosts(postType.value, currentPage.value, currentPageSize.value);
 
     return {

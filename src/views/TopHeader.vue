@@ -135,7 +135,7 @@ const handleCommand = async (command) => {
   await router.push(command);
 }
 
-const searchQuery = ref(""); // 搜索框的值
+const searchQuery = ref("");
 
 
 // 监听搜索框输入，限制长度为15

@@ -14,17 +14,17 @@
         </button>
       </div>
     </div>
-    <!-- 放在最下方的加载提示 -->
+    <!-- 加载提示 -->
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="finished" class="finished">没有更多内容了</div>
   </div>
 </template>
 
 <script>
-import { get, post } from "@/net/index.js";
-import { Star } from "@element-plus/icons-vue";
-import { useStore } from "@/stores";
-import { ElMessage } from "element-plus";
+import {get, post} from "@/net/index.js";
+import {Star} from "@element-plus/icons-vue";
+import {useStore} from "@/stores";
+import {ElMessage} from "element-plus";
 
 const store = useStore();
 const userId = store.auth.user.id;
@@ -36,46 +36,44 @@ export default {
   },
   data() {
     return {
-      tags: [], // 存储所有加载的主题数据
-      currentPage: 1, // 当前加载的页码
-      pageSize: 30, // 每页加载的记录数
-      total: 0, // 记录总数
-      loading: false, // 是否正在加载
-      finished: false // 是否加载完成
+      tags: [],
+      currentPage: 1,
+      pageSize: 30,
+      total: 0,
+      loading: false,
+      finished: false
     };
   },
   methods: {
-    // 获取数据方法
     async fetchTopics() {
       if (this.loading || this.finished) return;
       this.loading = true;
       get(`/posts/getAllTags/${userId}/${this.currentPage}/${this.pageSize}`, (message, data) => {
         this.tags.push(...data.records); // 将新数据追加到现有数组
         this.total = data.total;
-        // 判断是否已经加载完所有数据
         if (this.tags.length >= this.total) {
           this.finished = true;
         } else {
-          this.currentPage += 1; // 更新页码
+          this.currentPage += 1;
         }
         this.loading = false;
       });
     },
     handleScroll() {
-      const container = this.$el; // 获取当前元素
+      const container = this.$el;
       if (container.scrollTop + container.clientHeight >= container.scrollHeight - 10) {
-        this.fetchTopics(); // 触发加载更多数据
+        this.fetchTopics();
       }
     },
 
-    // 跳转到标签详情页
+    // 跳转到详情页
     navigateToTag(tagName) {
       this.$router.push(`/home/tagDetail/${tagName}`);
     },
 
     // 切换收藏状态
     toggleFavorite(tag) {
-      tag.isFocus = !tag.isFocus; // 切换收藏状态
+      tag.isFocus = !tag.isFocus;
       if (tag.isFocus) {
         post(`/users/focusTag`,
             {
@@ -87,7 +85,7 @@ export default {
               tag.tagPersonNum++;
             }
         )
-      }else {
+      } else {
         post(`/users/cancelFocusTag`,
             {
               userId: userId,
@@ -102,7 +100,7 @@ export default {
     }
   },
   mounted() {
-    this.fetchTopics(); // 初始化加载第一页数据
+    this.fetchTopics();
   }
 };
 </script>
@@ -145,8 +143,8 @@ export default {
 .card-content {
   padding: 10px;
   display: flex;
-  justify-content: space-between;  /* 文字和按钮分开，左边文字，右边按钮 */
-  align-items: center;  /* 垂直居中对齐 */
+  justify-content: space-between;
+  align-items: center;
 }
 
 .card-title {

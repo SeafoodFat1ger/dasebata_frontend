@@ -6,7 +6,6 @@
     </div>
     <div style="margin-top: 50px">
       <el-input v-model="form.username" type="text" placeholder="用户名">
-        <!--给输入框引入一个图标-->
         <template #prefix>
           <el-icon>
             <User />
@@ -14,7 +13,6 @@
         </template>
       </el-input>
       <el-input v-model="form.password" type="password" style="margin-top: 20px" placeholder="密码">
-        <!--给输入框引入一个图标-->
         <template #prefix>
           <el-icon>
             <Lock />
@@ -45,27 +43,23 @@ import { useStore } from "@/stores";
 
 const store = useStore()
 
-//绑定username,password,remember数据
 const form = reactive({
   username: '',
   password: '',
   remember: false
 })
 
-//点击“登录”
 const login = () => {
   if (!form.username || !form.password) {
     ElMessage.warning("请填写用户名和密码")
   } else {
-    //使用封装好的post方法
     post('/users/login', {
       username: form.username,
       password: form.password,
-      //remember: form.remember
     }, (message, data) => {//登录成功
       //先获取用户信息
       get(`/users/get/${data}`, (getMessage, getData) => {
-        //获取成功，就将用户信息存储在前端，然后才跳转到index
+        //用户信息存储在前端
         store.auth.user = getData
         localStorage.setItem("user", JSON.stringify(getData))//存在localStorage永久存储
         ElMessage.success(message)

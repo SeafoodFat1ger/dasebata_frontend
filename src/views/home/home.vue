@@ -56,7 +56,7 @@
               {{ index + 1 }}
             </div>
             <div style="flex-grow: 1">
-            {{ post.postTitle }}
+              {{ post.postTitle }}
             </div>
           </div>
         </div>
@@ -94,6 +94,7 @@
 import {get} from "@/net/index.js";
 import {ArrowLeft, ArrowRight} from "@element-plus/icons-vue";
 import {useStore} from "@/stores/index.js";
+
 const store = useStore();
 const userId = store.auth.user.id;
 
@@ -105,10 +106,10 @@ export default {
   data() {
     return {
       announcements: [
-        { text: '欢迎访问我们的网站！'},
-        { text: '[置顶] 进站须知~~~~', link: '/home/postDetail/92' },
+        {text: '欢迎访问我们的网站！'},
+        {text: '[置顶] 进站须知~~~~', link: '/home/postDetail/92'},
         //{ text: '[置顶] 数据库作业介绍~~~~~', link: '/home/postDetail/10000' },
-        { text: '[置顶] 数据库成员介绍~~~~~~', link: '/home/postDetail/93' }
+        {text: '[置顶] 数据库成员介绍~~~~~~', link: '/home/postDetail/93'}
       ],
 
       tags: [{
@@ -124,8 +125,6 @@ export default {
 
   methods: {
     async fetchQuestions() {
-      // 模拟获取最新提问数据
-
       get(`/posts/get/hot/post/all`, (message, data) => {
         this.hotPosts = data.records.slice(0, 10);
       });
@@ -142,10 +141,10 @@ export default {
       });
     },
 
-    navigateToQuestion(str){
+    navigateToQuestion(str) {
       this.$router.push(`/home/postDetail/${str}`);
     },
-    navigateToPost(str){
+    navigateToPost(str) {
       this.$router.push(`/home/postDetail/${str}`);
     },
 
@@ -175,16 +174,16 @@ export default {
 
     getRankCircleStyle(index) {
       // 根据排序的索引返回不同的背景颜色
-      if (index === 0) return { backgroundColor: 'rgba(255,119,120,0.82)' }; // 第一名：红色
-      if (index === 1) return { backgroundColor: 'rgba(255,136,0,0.69)' }; // 第二名：橙色
-      if (index === 2) return { backgroundColor: 'rgba(255,213,0,0.82)' }; // 第三名：黄色
-      if (index === 3) return { backgroundColor: 'rgba(144,238,144,0.82)' }; // 第四名：淡绿
-      if (index === 4) return { backgroundColor: 'rgba(140,255,255,0.82)' }; // 第五名：青色
-      if (index === 5) return { backgroundColor: 'rgba(135,206,235,0.82)' }; // 第六名：淡蓝色
-      if (index === 6) return { backgroundColor: 'rgba(238,130,238,0.82)' }; // 第七名：紫色
-      if (index === 7) return { backgroundColor: 'rgba(255,182,193,0.82)' }; // 第八名：淡粉色
-      if (index === 8) return { backgroundColor: 'rgba(255,105,180,0.82)' }; // 第九名：热粉色
-      if (index === 9) return { backgroundColor: 'rgba(255,20,147,0.82)' }; // 第十名：深粉色
+      if (index === 0) return {backgroundColor: 'rgba(255,119,120,0.82)'}; // 第一名：红色
+      if (index === 1) return {backgroundColor: 'rgba(255,136,0,0.69)'}; // 第二名：橙色
+      if (index === 2) return {backgroundColor: 'rgba(255,213,0,0.82)'}; // 第三名：黄色
+      if (index === 3) return {backgroundColor: 'rgba(144,238,144,0.82)'}; // 第四名：淡绿
+      if (index === 4) return {backgroundColor: 'rgba(140,255,255,0.82)'}; // 第五名：青色
+      if (index === 5) return {backgroundColor: 'rgba(135,206,235,0.82)'}; // 第六名：淡蓝色
+      if (index === 6) return {backgroundColor: 'rgba(238,130,238,0.82)'}; // 第七名：紫色
+      if (index === 7) return {backgroundColor: 'rgba(255,182,193,0.82)'}; // 第八名：淡粉色
+      if (index === 8) return {backgroundColor: 'rgba(255,105,180,0.82)'}; // 第九名：热粉色
+      if (index === 9) return {backgroundColor: 'rgba(255,20,147,0.82)'}; // 第十名：深粉色
     },
   },
   mounted() {
@@ -200,10 +199,10 @@ export default {
 .scrolling-banner {
   margin-top: 60px;
   width: 100%;
-  height: 50px; /* 控制公告栏高度 */
+  height: 50px;
   overflow: hidden;
-  background-color: #fdf7e4; /* 浅黄色背景 */
-  border: 1px solid #e6dfc8; /* 边框颜色与背景协调 */
+  background-color: #fdf7e4;
+  border: 1px solid #e6dfc8;
 
 }
 
@@ -221,10 +220,10 @@ export default {
 
 /* 每条公告样式 */
 .scrolling-content a {
-  align-items: center; /* 图标与文字垂直居中 */
+  align-items: center;
   padding: 0 10px;
-  height: 50px; /* 每条公告的高度与容器一致 */
-  color: #d9773f; /* 橙色文字 */
+  height: 50px;
+  color: #d9773f;
   font-size: 16px;
   text-decoration: none;
   white-space: nowrap;
@@ -240,16 +239,16 @@ export default {
 
 /* 图标样式 */
 .icon {
-  margin-right: 10px; /* 图标与文字的间距 */
+  margin-right: 10px;
 }
 
 /* 动画：实现无缝垂直滚动 */
 @keyframes scrollBanner {
   0% {
-    transform: translateY(0); /* 起始位置 */
+    transform: translateY(0);
   }
   100% {
-    transform: translateY(-100%); /* 滚动完整个高度 */
+    transform: translateY(-100%);
   }
 }
 

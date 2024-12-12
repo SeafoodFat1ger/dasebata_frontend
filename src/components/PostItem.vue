@@ -99,17 +99,17 @@ export default {
 <style scoped>
 /* 基本布局优化 */
 .post-item {
-  min-width: 350px;/*******************/
+  min-width: 350px;
   width: 500px;
-  flex: 1 1 300px;  /* 让每个 PostItem 的宽度为 300px，且允许根据容器大小变化 */
-  max-height: 300px;  /* 设置最大高度 */
-  margin: 5px;  /* 设置间距 */
+  flex: 1 1 300px;
+  max-height: 300px;
+  margin: 5px;
   background-color: rgb(243, 245, 252);
-  border-radius: 20px;  /* 圆角边框 */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);  /* 卡片的阴影效果 */
-  overflow: hidden;  /* 防止内容溢出 */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;  /* 添加动画效果 */
-  cursor: pointer;  /* 鼠标悬停时显示为可点击 */
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
   max-width: 80%;
 }
 
