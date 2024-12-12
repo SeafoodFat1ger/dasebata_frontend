@@ -1,38 +1,20 @@
-# buaa_db
+# Ting2Django北航校园论坛
 
-这里是一些粗糙的前端
-vue3+vite+elementPlus
-
-todo:
-- postDetail
-- profile
-- a million things havent done > <
-
-安装
+## Project setup
 
 ```
-npm install
-npm install element-plus
+ npm install
 ```
 
-运行
+### Compiles and hot-reloads for development
 
 ```
-npm run dev
+ npm run dev
 ```
 
-
-
-zxy：
-
-- 新增一些组件，header改为topheader
-- postDetail别看，需要优化
-
-idea下debug:
+### Compiles and minifies for production
 
 ```
-Ctrl + Shift + 网址
+ npm run build
 ```
-
-
 
